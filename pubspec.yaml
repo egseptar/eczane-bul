@@ -1,0 +1,37 @@
+name: eczane_bul
+description: Yakındaki Eczaneler ve Hastaneler - Sağlık rehberi uygulaması
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.3.0
+  cached_network_image: ^3.3.1
+  url_launcher: ^6.2.5
+  geolocator: ^11.0.0
+  permission_handler: ^11.3.0
+  flutter_rating_bar: ^4.0.1
+  shimmer: ^3.0.0
+  lottie: ^3.0.0
+  google_maps_flutter: ^2.9.0
+  http: ^1.2.2
+  geocoding: ^3.0.0
+  google_mobile_ads: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+
