@@ -261,29 +261,67 @@ class PlacesService {
 
     final lowerName = name.toLowerCase();
 
-    if (lowerName.contains('medical park') || lowerName.contains('medicalpark')) {
-      return 'https://www.medicalpark.com.tr/randevu';
-    }
-    if (lowerName.contains('medipol')) {
-      return 'https://medipol.com.tr/e-hizmetler/e-randevu';
-    }
-    if (lowerName.contains('medicana')) {
-      return 'https://medicana.com.tr/e-randevu';
-    }
+    // 1. Acıbadem
     if (lowerName.contains('acıbadem') || lowerName.contains('acibadem')) {
-      return 'https://www.acibadem.com.tr/randevu/';
-    }
-    if (lowerName.contains('memorial')) {
-      return 'https://www.memorial.com.tr/e-randevu';
-    }
-    if (lowerName.contains('florence') || lowerName.contains('nightingale')) {
-      return 'https://www.florence.com.tr/e-randevu';
-    }
-    if (lowerName.contains('liv')) {
-      return 'https://www.livhospital.com/e-randevu';
+      return 'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard';
     }
 
-    // Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
+    // 2. Medical Park / VM Medical Park
+    if (lowerName.contains('medical park') ||
+        lowerName.contains('medicalpark') ||
+        lowerName.contains('vm medical')) {
+      return 'https://www.medicalpark.com.tr/randevu-al/bilgi-dogrulama';
+    }
+
+    // 3. Memorial
+    if (lowerName.contains('memorial')) {
+      return 'https://www.memorial.com.tr/randevu-al';
+    }
+
+    // 4. Medicana
+    if (lowerName.contains('medicana')) {
+      return 'https://www.medicana.com.tr/online-randevu';
+    }
+
+    // 5. Medipol
+    if (lowerName.contains('medipol')) {
+      return 'https://online.medipol.com.tr/';
+    }
+
+    // 6. Liv Hospital
+    if (lowerName.contains('liv hospital') || lowerName.contains('liv')) {
+      return 'https://www.livhospital.com/randevu-al/bilgi-dogrulama';
+    }
+
+    // 7. Florence Nightingale
+    if (lowerName.contains('florence') || lowerName.contains('nightingale')) {
+      return 'https://www.florence.com.tr/online-randevu';
+    }
+
+    // 8. Başkent Hastanesi
+    if (lowerName.contains('başkent') || lowerName.contains('baskent')) {
+      return 'https://ankara.baskenthastaneleri.com/tr/online-islemler/randevu';
+    }
+
+    // 9. Hisar Hospital
+    if (lowerName.contains('hisar')) {
+      return 'https://hisarhospital.com/randevu-al/?utm_term=hisar%20hastanesi%20randevu&utm_campaign=Branding+Search&utm_source=adwords&utm_medium=ppc&hsa_acc=7469825535&hsa_cam=8540911371&hsa_grp=125669721536&hsa_ad=627906579021&hsa_src=g&hsa_tgt=kwd-487119120378&hsa_kw=hisar%20hastanesi%20randevu&hsa_mt=b&hsa_net=adwords&hsa_ver=3&gad_source=1&gad_campaignid=8540911371&gclid=Cj0KCQjwg5zTBhCLARIsAP2AFU718R-cVWMJE8vbBZIi4m6SudaTPbmug4AN1WN8eXegPEQ_QabpvDgaAusnEALw_wcB#/appointment';
+    }
+
+    // 10. Anadolu Sağlık Merkezi
+    if (lowerName.contains('anadolu sağlık') || lowerName.contains('anadolu saglik')) {
+      return 'https://www.anadolusaglik.org/doktorlar';
+    }
+
+    // 11. Dünyagöz
+    if (lowerName.contains('dünyagöz') ||
+        lowerName.contains('dunya goz') ||
+        lowerName.contains('dünya göz') ||
+        lowerName.contains('dunyagoz')) {
+      return 'https://www.dunyagoz.com/tr/islemler/randevu?anaRandevu';
+    }
+
+    // 12. Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
     return 'https://mhrs.gov.tr/';
   }
 
