@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isLoading = true;
   bool _usedFallback = false;
   bool _locationObtained = false;
+  bool _isBusinessHours = true;
   double? _userLat;
   double? _userLng;
   String? _selectedSymptomBranch;
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen>
       _allHospitals = result.hospitals;
       _usedFallback = result.usedFallback;
       _locationObtained = result.locationObtained;
+      _isBusinessHours = result.isBusinessHours;
       _userLat = result.userLat;
       _userLng = result.userLng;
       _isLoading = false;
@@ -712,8 +714,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildListHeader() {
     final tabLabel = _activeTab == NavTab.pharmacy
-        ? '💊 Nöbetçi Eczaneler'
+        ? (_isBusinessHours ? '💊 Açık Eczaneler' : '🌙 Nöbetçi Eczaneler')
         : '🏥 Hastaneler';
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
@@ -744,6 +748,53 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
+
+          // Eczane Sekmesinde Kurumsal Durum Rozeti (Chip)
+          if (_activeTab == NavTab.pharmacy) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: _isBusinessHours
+                    ? AppColors.openGreen.withValues(alpha: isDark ? 0.2 : 0.08)
+                    : AppColors.emergencyRed.withValues(alpha: isDark ? 0.2 : 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _isBusinessHours
+                      ? AppColors.openGreen.withValues(alpha: 0.3)
+                      : AppColors.emergencyRed.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _isBusinessHours
+                        ? Icons.storefront_rounded
+                        : Icons.nightlife_rounded,
+                    size: 15,
+                    color: _isBusinessHours
+                        ? AppColors.openGreen
+                        : AppColors.emergencyRed,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isBusinessHours
+                        ? 'Şu An Açık Eczaneler (Mesai Saatleri: 08:30 - 19:00)'
+                        : 'Nöbetçi Eczaneler (7/24 Aktif Nöbet Hizmeti)',
+                    style: AppTextStyles.caption.copyWith(
+                      color: _isBusinessHours
+                          ? AppColors.openGreen
+                          : AppColors.emergencyRed,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           if (_activeTab == NavTab.hospital && _selectedSymptomBranch != null) ...[
             const SizedBox(height: 8),
             Container(

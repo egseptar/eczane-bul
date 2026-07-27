@@ -101,11 +101,34 @@ class DataService {
       userLng: userLng,
       locationObtained: locationObtained,
       usedFallback: usedFallback,
+      isBusinessHours: isBusinessHours(),
     );
   }
 
   // ─────────────────────────────────────────
-  //  Nöbetçi Eczane Çekme
+  //  Zaman ve Mesai Kontrolü
+  // ─────────────────────────────────────────
+
+  /// Cihaz saatini kontrol eder.
+  /// Mesai Saatleri: Pazartesi - Cumartesi 08:30 - 19:00.
+  /// Mesai Dışı: Hafta içi/Cumartesi 19:00 - 08:30 ve Pazar tüm gün.
+  static bool isBusinessHours([DateTime? time]) {
+    final now = time ?? DateTime.now();
+    final weekday = now.weekday;
+
+    if (weekday == DateTime.sunday) {
+      return false;
+    }
+
+    final totalMinutes = now.hour * 60 + now.minute;
+    const startMinutes = 8 * 60 + 30; // 08:30 -> 510 dk
+    const endMinutes = 19 * 60;        // 19:00 -> 1140 dk
+
+    return totalMinutes >= startMinutes && totalMinutes < endMinutes;
+  }
+
+  // ─────────────────────────────────────────
+  //  Nöbetçi / Açık Eczane Yönlendirmesi
   // ─────────────────────────────────────────
 
   Future<List<PlaceModel>> _fetchPharmacies({
@@ -114,21 +137,42 @@ class DataService {
     required double lat,
     required double lng,
   }) async {
-    // API anahtarı varsa gerçek nöbetçi servisi dene
-    if (ApiConstants.hasPharmacyApiKey) {
-      final result = await DutyPharmacyService.instance.getDutyPharmacies(
-        city: city,
-        district: district,
-      );
-      if (result.isNotEmpty) return result;
-    }
+    final isWorkingHours = isBusinessHours();
 
-    // Google Places ile eczane ara (API key varsa)
-    if (ApiConstants.hasGoogleKey) {
-      return PlacesService.instance.getNearbyPharmacies(
-        latitude: lat,
-        longitude: lng,
-      );
+    if (isWorkingHours) {
+      // Mesai Saatleri İçinde: Google Places API'ye istek at (opennow=true)
+      if (ApiConstants.hasGoogleKey) {
+        final googlePharmacies = await PlacesService.instance.getNearbyPharmacies(
+          latitude: lat,
+          longitude: lng,
+        );
+        if (googlePharmacies.isNotEmpty) return googlePharmacies;
+      }
+
+      // Fallback: CollectAPI / NosyAPI
+      if (ApiConstants.hasPharmacyApiKey) {
+        return DutyPharmacyService.instance.getDutyPharmacies(
+          city: city,
+          district: district,
+        );
+      }
+    } else {
+      // Mesai Dışı Saatlerde: Google API'yi yoksay, CollectAPI Nöbetçi Eczane uç noktasına git
+      if (ApiConstants.hasPharmacyApiKey) {
+        final dutyPharmacies = await DutyPharmacyService.instance.getDutyPharmacies(
+          city: city,
+          district: district,
+        );
+        if (dutyPharmacies.isNotEmpty) return dutyPharmacies;
+      }
+
+      // Fallback: Google Places
+      if (ApiConstants.hasGoogleKey) {
+        return PlacesService.instance.getNearbyPharmacies(
+          latitude: lat,
+          longitude: lng,
+        );
+      }
     }
 
     return [];
@@ -215,6 +259,7 @@ class DataResult {
   final double userLng;
   final bool locationObtained;
   final bool usedFallback;
+  final bool isBusinessHours;
 
   const DataResult({
     required this.pharmacies,
@@ -223,6 +268,7 @@ class DataResult {
     required this.userLng,
     required this.locationObtained,
     required this.usedFallback,
+    required this.isBusinessHours,
   });
 
   List<PlaceModel> get all => [...pharmacies, ...hospitals];
