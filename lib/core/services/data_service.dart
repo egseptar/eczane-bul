@@ -190,7 +190,7 @@ class DataService {
     return PlacesService.instance.getNearbyHospitals(
       latitude: lat,
       longitude: lng,
-      radius: ApiConstants.defaultSearchRadius,
+      radius: ApiConstants.maxSearchRadius,
     );
   }
 

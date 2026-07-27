@@ -146,11 +146,24 @@ class _HomeScreenState extends State<HomeScreen>
         base = _allPharmacies;
         break;
       case NavTab.hospital:
-        if (_selectedSymptomTag != null) {
-          // Milisaniyelik Statik Etiketleme filtrelemesi
-          base = _allHospitals
-              .where((h) => h.emergencyTags.contains(_selectedSymptomTag!))
-              .toList();
+        if (_selectedSymptomBranch != null || _selectedSymptomTag != null) {
+          final queryBranch = _selectedSymptomBranch?.toLowerCase() ?? '';
+          final matched = _allHospitals.where((h) {
+            final matchesTag = _selectedSymptomTag != null && h.emergencyTags.contains(_selectedSymptomTag);
+            final matchesBranch = queryBranch.isNotEmpty && (
+              h.branches.any((b) => b.toLowerCase().contains(queryBranch)) ||
+              h.name.toLowerCase().contains(queryBranch) ||
+              (queryBranch.contains('kalp') && (
+                h.name.toLowerCase().contains('kardiyoloji') ||
+                h.name.toLowerCase().contains('göğüs') ||
+                h.name.toLowerCase().contains('gogus') ||
+                h.name.toLowerCase().contains('kalp')
+              ))
+            );
+            return matchesTag || matchesBranch;
+          }).toList();
+
+          base = matched.isNotEmpty ? matched : _allHospitals;
         } else {
           base = _allHospitals;
         }

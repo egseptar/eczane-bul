@@ -34,11 +34,11 @@ class PlacesService {
     );
   }
 
-  /// Verilen koordinat etrafındaki hastaneleri getirir.
+  /// Verilen koordinat etrafındaki tüm hastaneleri geniş yarıçap ile getirir.
   Future<List<PlaceModel>> getNearbyHospitals({
     required double latitude,
     required double longitude,
-    int radius = ApiConstants.defaultSearchRadius,
+    int radius = ApiConstants.maxSearchRadius,
   }) async {
     return _nearbySearch(
       latitude: latitude,
@@ -53,7 +53,7 @@ class PlacesService {
   Future<List<PlaceModel>> getNearbyHealthPlaces({
     required double latitude,
     required double longitude,
-    int radius = ApiConstants.defaultSearchRadius,
+    int radius = ApiConstants.maxSearchRadius,
   }) async {
     final results = await Future.wait([
       getNearbyPharmacies(latitude: latitude, longitude: longitude, radius: radius),
@@ -134,7 +134,7 @@ class PlacesService {
         }
       }
     } catch (e) {
-      // Ağ hatası — boş liste döndür, uygulama dummy dataya düşer
+      // Ağ hatası — boş liste döndür
     }
     return [];
   }
@@ -185,6 +185,7 @@ class PlacesService {
 
       final rating = (json['rating'] as num?)?.toDouble() ?? 0.0;
       final reviewsCount = (json['user_ratings_total'] as int?) ?? 0;
+      final appointmentUrl = _resolveAppointmentUrl(name, type);
 
       return PlaceModel(
         id: placeId.isNotEmpty ? placeId : 'place_${name.hashCode}',
@@ -204,6 +205,7 @@ class PlacesService {
         latitude: lat,
         longitude: lng,
         workingHours: isOpen ? 'Açık (24 Saat)' : 'Kapalı',
+        appointmentUrl: appointmentUrl,
       );
     } catch (_) {
       // Hata durumunda varsayılan güvenli model döndür
@@ -219,8 +221,41 @@ class PlacesService {
         isOpen: true,
         latitude: 0.0,
         longitude: 0.0,
+        appointmentUrl: _resolveAppointmentUrl(json['name']?.toString() ?? '', type),
       );
     }
+  }
+
+  /// Hastane adına göre otomatik E-Randevu URL'si atar (MHRS ve Özel Markalar).
+  String? _resolveAppointmentUrl(String name, PlaceType type) {
+    if (type != PlaceType.hospital) return null;
+
+    final lowerName = name.toLowerCase();
+
+    if (lowerName.contains('medical park') || lowerName.contains('medicalpark')) {
+      return 'https://www.medicalpark.com.tr/randevu';
+    }
+    if (lowerName.contains('medipol')) {
+      return 'https://medipol.com.tr/e-hizmetler/e-randevu';
+    }
+    if (lowerName.contains('medicana')) {
+      return 'https://medicana.com.tr/e-randevu';
+    }
+    if (lowerName.contains('acıbadem') || lowerName.contains('acibadem')) {
+      return 'https://www.acibadem.com.tr/randevu/';
+    }
+    if (lowerName.contains('memorial')) {
+      return 'https://www.memorial.com.tr/e-randevu';
+    }
+    if (lowerName.contains('florence') || lowerName.contains('nightingale')) {
+      return 'https://www.florence.com.tr/e-randevu';
+    }
+    if (lowerName.contains('liv')) {
+      return 'https://www.livhospital.com/e-randevu';
+    }
+
+    // Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
+    return 'https://mhrs.gov.tr/';
   }
 
   List<String> _extractBranches(Map<String, dynamic> json) {
