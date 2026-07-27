@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/services/preference_service.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/onboarding/screens/onboarding_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -16,7 +18,19 @@ class App extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: mode,
-          home: const HomeScreen(),
+          home: FutureBuilder<bool>(
+            future: PreferenceService.instance.isFirstLaunch(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Scaffold(
+                  backgroundColor: Theme.of(context).colorScheme.background,
+                  body: const SizedBox.shrink(),
+                );
+              }
+              final isFirstLaunch = snapshot.data ?? true;
+              return isFirstLaunch ? const OnboardingScreen() : const HomeScreen();
+            },
+          ),
         );
       },
     );
