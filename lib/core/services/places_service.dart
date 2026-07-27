@@ -144,54 +144,83 @@ class PlacesService {
   // ─────────────────────────────────────────
 
   PlaceModel _mapToPlaceModel(Map<String, dynamic> json, PlaceType type) {
-    final geometry = json['geometry']?['location'] as Map<String, dynamic>?;
-    final lat = (geometry?['lat'] as num?)?.toDouble() ?? 0.0;
-    final lng = (geometry?['lng'] as num?)?.toDouble() ?? 0.0;
+    try {
+      final geometryLocation = json['geometry']?['location'] as Map<String, dynamic>?;
+      final lat = (geometryLocation?['lat'] as num?)?.toDouble() ??
+          (json['lat'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble() ??
+          double.tryParse(json['lat']?.toString() ?? '') ??
+          0.0;
+      final lng = (geometryLocation?['lng'] as num?)?.toDouble() ??
+          (json['lng'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble() ??
+          double.tryParse(json['lng']?.toString() ?? '') ??
+          0.0;
 
-    final openingHours = json['opening_hours'] as Map<String, dynamic>?;
-    final isOpen = openingHours?['open_now'] as bool? ?? true;
+      final openingHours = json['opening_hours'] as Map<String, dynamic>?;
+      final isOpen = openingHours?['open_now'] as bool? ?? true;
 
-    final extractedBranches = _extractBranches(json);
-    final branches = (extractedBranches.isEmpty && type == PlaceType.hospital)
-        ? const ['Genel Cerrahi', 'Acil Servis', 'Dahiliye', 'Kardiyoloji', 'Ortopedi']
-        : extractedBranches;
+      final name = (json['name'] as String?)?.trim() ?? 'Sağlık Kuruluşu';
+      final address = (json['vicinity'] ?? json['formatted_address'] ?? json['address'])?.toString().trim() ?? '';
+      final placeId = (json['place_id'] ?? json['id'])?.toString() ?? '';
 
-    final emergencyTags = type == PlaceType.hospital
-        ? const [
-            'has_general_emergency',
-            'has_cardiology_emergency',
-            'has_orthopedics_emergency',
-            'has_general_surgery',
-            'has_pediatric_emergency',
-            'has_neurology_emergency',
-            'has_internal_medicine',
-            'has_ophthalmology_emergency',
-            'has_dental_emergency',
-          ]
-        : const <String>[];
+      final extractedBranches = _extractBranches(json);
+      final branches = (extractedBranches.isEmpty && type == PlaceType.hospital)
+          ? const ['Genel Cerrahi', 'Acil Servis', 'Dahiliye', 'Kardiyoloji', 'Ortopedi']
+          : extractedBranches;
 
-    final rating = (json['rating'] as num?)?.toDouble() ?? 0.0;
-    final reviewsCount = (json['user_ratings_total'] as int?) ?? 0;
+      final emergencyTags = type == PlaceType.hospital
+          ? const [
+              'has_general_emergency',
+              'has_cardiology_emergency',
+              'has_orthopedics_emergency',
+              'has_general_surgery',
+              'has_pediatric_emergency',
+              'has_neurology_emergency',
+              'has_internal_medicine',
+              'has_ophthalmology_emergency',
+              'has_dental_emergency',
+            ]
+          : const <String>[];
 
-    return PlaceModel(
-      id: json['place_id'] as String? ?? '',
-      name: json['name'] as String? ?? 'Bilinmiyor',
-      type: type,
-      rating: rating,
-      reviewsCount: reviewsCount,
-      distanceKm: 0.0, // Mesafe location_service ile ayrıca hesaplanır
-      address: json['vicinity'] as String? ?? '',
-      phone: '', // Place Details ile doldurulur
-      isOpen: isOpen,
-      isOnDuty: type == PlaceType.pharmacy && isOpen,
-      branches: branches,
-      tags: _extractTags(json),
-      emergencyTags: emergencyTags,
-      reviews: const [],
-      latitude: lat,
-      longitude: lng,
-      workingHours: isOpen ? 'Açık (24 Saat)' : 'Kapalı',
-    );
+      final rating = (json['rating'] as num?)?.toDouble() ?? 0.0;
+      final reviewsCount = (json['user_ratings_total'] as int?) ?? 0;
+
+      return PlaceModel(
+        id: placeId.isNotEmpty ? placeId : 'place_${name.hashCode}',
+        name: name,
+        type: type,
+        rating: rating,
+        reviewsCount: reviewsCount,
+        distanceKm: 0.0,
+        address: address,
+        phone: (json['formatted_phone_number'] ?? json['phone'])?.toString() ?? '',
+        isOpen: isOpen,
+        isOnDuty: type == PlaceType.pharmacy && isOpen,
+        branches: branches,
+        tags: _extractTags(json),
+        emergencyTags: emergencyTags,
+        reviews: const [],
+        latitude: lat,
+        longitude: lng,
+        workingHours: isOpen ? 'Açık (24 Saat)' : 'Kapalı',
+      );
+    } catch (_) {
+      // Hata durumunda varsayılan güvenli model döndür
+      return PlaceModel(
+        id: 'place_err_${json['name']?.hashCode ?? 0}',
+        name: json['name']?.toString() ?? 'Sağlık Kuruluşu',
+        type: type,
+        rating: 0.0,
+        reviewsCount: 0,
+        distanceKm: 0.0,
+        address: json['vicinity']?.toString() ?? '',
+        phone: '',
+        isOpen: true,
+        latitude: 0.0,
+        longitude: 0.0,
+      );
+    }
   }
 
   List<String> _extractBranches(Map<String, dynamic> json) {

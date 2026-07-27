@@ -13,6 +13,7 @@ import '../widgets/map_widget.dart';
 import '../widgets/place_card_widget.dart';
 import '../widgets/search_bar_widget.dart';
 import '../../detail/screens/detail_screen.dart';
+import '../../map/screens/full_screen_map_screen.dart';
 import '../../common/widgets/ad_banner_widget.dart';
 
 // ─────────────────────────────────────────
@@ -664,14 +665,14 @@ class _HomeScreenState extends State<HomeScreen>
                   MaterialPageRoute(
                       builder: (_) => DetailScreen(place: place)),
                 ),
-                onExpand: () => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Tam ekran harita yakında!'),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    margin:
-                        const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                onExpand: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FullScreenMapScreen(
+                      places: _filteredPlaces,
+                      userLat: _userLat,
+                      userLng: _userLng,
+                    ),
                   ),
                 ),
               ),
