@@ -879,25 +879,63 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────
 
   Widget _buildEmptyState() {
+    final isHospitalTab = _activeTab == NavTab.hospital;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 40),
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 32),
       child: Column(
         children: [
           Container(
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-                color: AppColors.primaryBlueSurface, shape: BoxShape.circle),
-            child: const Icon(Icons.search_off_rounded,
-                color: AppColors.primaryBlue, size: 36),
+              color: isHospitalTab
+                  ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                  : AppColors.primaryBlueSurface,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isHospitalTab
+                  ? Icons.local_hospital_outlined
+                  : Icons.search_off_rounded,
+              color: AppColors.primaryBlue,
+              size: 36,
+            ),
           ),
           const SizedBox(height: 16),
-          Text('Sonuç bulunamadı',
-              style: AppTextStyles.headlineSmall
-                  .copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            isHospitalTab
+                ? 'Yakında uygun sağlık kuruluşu bulunamadı.'
+                : 'Sonuç bulunamadı',
+            style: AppTextStyles.headlineSmall.copyWith(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
-          Text('Arama kriterlerinizi değiştirmeyi deneyin.',
-              style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
+          Text(
+            isHospitalTab
+                ? 'Konumunuza yakın tanımlı bir hastane bulunamadı veya arama yarıçapı içerisinde yer almıyor.'
+                : 'Arama kriterlerinizi değiştirmeyi veya haritayı yakınlaştırmayı deneyin.',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: const Text('Yeniden Ara'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primaryBlue,
+              side: const BorderSide(color: AppColors.primaryBlue),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ],
       ),
     );

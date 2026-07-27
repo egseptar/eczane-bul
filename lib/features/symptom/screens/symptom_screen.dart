@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../data/dummy_data.dart';
+import '../../../core/services/data_service.dart';
+import '../../../models/place_model.dart';
 import '../../home/widgets/place_card_widget.dart';
 import '../widgets/symptom_category_card.dart';
 import '../../detail/screens/detail_screen.dart';
@@ -18,6 +19,9 @@ class _SymptomScreenState extends State<SymptomScreen>
     with SingleTickerProviderStateMixin {
   Map<String, String>? _selectedCategory;
   String? _selectedBranch;
+  List<PlaceModel> _liveHospitals = [];
+  bool _isLoading = true;
+
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
 
@@ -33,6 +37,16 @@ class _SymptomScreenState extends State<SymptomScreen>
       curve: Curves.easeOut,
     );
     _animController.forward();
+    _loadLiveHospitals();
+  }
+
+  Future<void> _loadLiveHospitals() async {
+    final result = await DataService.instance.loadAllData();
+    if (!mounted) return;
+    setState(() {
+      _liveHospitals = result.hospitals;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -330,9 +344,51 @@ class _SymptomScreenState extends State<SymptomScreen>
   }
 
   Widget _buildResults() {
-    final hospitals = DummyData.getHospitalsForBranch(_selectedBranch!);
-    final prioritized =
-        hospitals.where((h) => h.branches.contains(_selectedBranch)).toList();
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryBlue),
+        ),
+      );
+    }
+
+    // Live API hastanelerinden seçilen branşa uygun olanları veya tüm canlı hastaneleri getir
+    final branchHospitals = _liveHospitals.where((h) {
+      return h.branches.any((b) => b.toLowerCase().contains(_selectedBranch!.toLowerCase())) ||
+             h.name.toLowerCase().contains(_selectedBranch!.toLowerCase());
+    }).toList();
+
+    // Branşa birebir uyan yoksa tüm canlı hastaneleri genel acil desteğiyle göster
+    final displayHospitals = branchHospitals.isNotEmpty ? branchHospitals : _liveHospitals;
+
+    if (displayHospitals.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.local_hospital_outlined, size: 40, color: AppColors.primaryBlue),
+            const SizedBox(height: 12),
+            Text(
+              'Yakında uygun sağlık kuruluşu bulunamadı.',
+              style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '$_selectedBranch branşı için konumunuza yakın hastane bulunamadı.',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +419,7 @@ class _SymptomScreenState extends State<SymptomScreen>
                       ),
                     ),
                     Text(
-                      '${prioritized.length} uzman hastane bulundu',
+                      '${displayHospitals.length} canlı hastane listelendi',
                       style: AppTextStyles.caption.copyWith(
                         color: Colors.white70,
                       ),
@@ -375,8 +431,8 @@ class _SymptomScreenState extends State<SymptomScreen>
           ),
         ),
         const SizedBox(height: 14),
-        ...hospitals.map((place) {
-          final isPrioritized = place.branches.contains(_selectedBranch);
+        ...displayHospitals.map((place) {
+          final isPrioritized = place.branches.any((b) => b.toLowerCase().contains(_selectedBranch!.toLowerCase()));
           return PlaceCardWidget(
             place: place,
             badgeText: isPrioritized
