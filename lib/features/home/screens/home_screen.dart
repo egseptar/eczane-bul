@@ -733,9 +733,26 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildListHeader() {
-    final tabLabel = _activeTab == NavTab.pharmacy
-        ? (_isBusinessHours ? '💊 Açık Eczaneler' : '🌙 Nöbetçi Eczaneler')
-        : '🏥 Hastaneler';
+    final isPharmacy = _activeTab == NavTab.pharmacy;
+    final String titleText;
+    final IconData headerIcon;
+    final Color iconColor;
+
+    if (isPharmacy) {
+      if (_isBusinessHours) {
+        titleText = 'Açık Eczaneler';
+        headerIcon = Icons.local_pharmacy_rounded;
+        iconColor = AppColors.pharmacyActive;
+      } else {
+        titleText = 'Nöbetçi Eczaneler';
+        headerIcon = Icons.nightlife_rounded;
+        iconColor = AppColors.emergencyRed;
+      }
+    } else {
+      titleText = 'Hastaneler';
+      headerIcon = Icons.local_hospital_rounded;
+      iconColor = AppColors.hospitalActive;
+    }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -746,8 +763,24 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           Row(
             children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: isDark ? 0.22 : 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: iconColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Icon(
+                  headerIcon,
+                  size: 20,
+                  color: iconColor,
+                ),
+              ),
+              const SizedBox(width: 10),
               Text(
-                tabLabel,
+                titleText,
                 style: AppTextStyles.headlineSmall
                     .copyWith(fontWeight: FontWeight.w800),
               ),

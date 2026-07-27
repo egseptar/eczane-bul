@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/services/preference_service.dart';
@@ -200,18 +199,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: Column(
                 children: [
-                  // Smooth Nokta Göstergesi
-                  SmoothPageIndicator(
-                    controller: _pageController,
-                    count: _items.length,
-                    effect: ExpandingDotsEffect(
-                      dotWidth: 10,
-                      dotHeight: 10,
-                      expansionFactor: 3.5,
-                      spacing: 8,
-                      dotColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
-                      activeDotColor: currentItem.accentColor,
-                    ),
+                  // Custom Animated Smooth Nokta Göstergesi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_items.length, (index) {
+                      final isSelected = _currentPage == index;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: isSelected ? 32 : 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? currentItem.accentColor
+                              : (isDark ? Colors.white : Colors.black)
+                                  .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      );
+                    }),
                   ),
                   const SizedBox(height: 32),
 

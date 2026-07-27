@@ -416,7 +416,7 @@ class DummyData {
       latitude: 40.9908,
       longitude: 29.1247,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://www.acibadem.com.tr/randevu/',
+      appointmentUrl: 'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard',
     ),
     PlaceModel(
       id: 'h5',
