@@ -48,6 +48,15 @@ class AppColors {
   static const Color closedRed = Color(0xFFDC2626);
   static const Color warningOrange = Color(0xFFF59E0B);
 
+  // Glassmorphism Navigation Colors
+  static const Color emergency112 = Color(0xFFE30E13);
+  static const Color hospitalActive = Color(0xFF46B3AE);
+  static const Color pharmacyActive = Color(0xFFA40211);
+  static const Color symptomActive = Color(0xFF2A7A82);
+  static const Color menuActive = Color(0xFF5C1D24);
+  static const Color iconInactive = Color(0xFF8E8E93);
+  static Color get glassBackground => isDark ? const Color(0xB31C1C1E) : const Color(0xB3FFFFFF);
+
   // Star Rating
   static const Color starGold = Color(0xFFFBBF24);
 

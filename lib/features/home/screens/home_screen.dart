@@ -322,23 +322,23 @@ class _HomeScreenState extends State<HomeScreen>
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(12, 0, 12, bottomPadding > 0 ? bottomPadding : 10),
+      padding: EdgeInsets.fromLTRB(14, 0, 14, bottomPadding > 0 ? bottomPadding : 12),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: isDark ? 0.78 : 0.85),
+              color: AppColors.glassBackground,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.12 : 0.08),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.14 : 0.08),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -349,39 +349,42 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Expanded(
                   child: _buildNavItem(
-                    NavTab.pharmacy,
-                    Icons.local_pharmacy_outlined,
-                    Icons.local_pharmacy_rounded,
-                    'Eczane',
+                    tab: NavTab.pharmacy,
+                    outlinedIcon: Icons.local_pharmacy_outlined,
+                    filledIcon: Icons.local_pharmacy_rounded,
+                    label: 'Eczane',
+                    activeColor: AppColors.pharmacyActive,
                   ),
                 ),
                 Expanded(
                   child: _buildNavItem(
-                    NavTab.hospital,
-                    Icons.local_hospital_outlined,
-                    Icons.local_hospital_rounded,
-                    'Hastane',
+                    tab: NavTab.hospital,
+                    outlinedIcon: Icons.local_hospital_outlined,
+                    filledIcon: Icons.local_hospital_rounded,
+                    label: 'Hastane',
+                    activeColor: AppColors.hospitalActive,
                   ),
                 ),
                 
-                // Ortadaki 112 Acil Butonu
+                // Merkez Yüzen 112 Acil Butonu (Center Docked)
                 Expanded(
                   child: GestureDetector(
                     onTap: _showEmergencySheet,
                     onLongPress: _showEmergencySheet,
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 280),
+                      duration: const Duration(milliseconds: 250),
                       curve: Curves.easeInOutCubic,
                       margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.emergencyRed,
+                        color: AppColors.emergency112,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.emergencyRed.withValues(alpha: 0.35),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: AppColors.emergency112.withValues(alpha: 0.45),
+                            blurRadius: 14,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -408,18 +411,20 @@ class _HomeScreenState extends State<HomeScreen>
                 
                 Expanded(
                   child: _buildNavItem(
-                    NavTab.symptom,
-                    Icons.healing_outlined,
-                    Icons.healing_rounded,
-                    'Şikayet',
+                    tab: NavTab.symptom,
+                    outlinedIcon: Icons.healing_outlined,
+                    filledIcon: Icons.healing_rounded,
+                    label: 'Şikayet',
+                    activeColor: AppColors.symptomActive,
                   ),
                 ),
                 Expanded(
                   child: _buildNavItem(
-                    NavTab.settings,
-                    Icons.grid_view_outlined,
-                    Icons.grid_view_rounded,
-                    'Menü',
+                    tab: NavTab.settings,
+                    outlinedIcon: Icons.grid_view_outlined,
+                    filledIcon: Icons.grid_view_rounded,
+                    label: 'Menü',
+                    activeColor: AppColors.menuActive,
                   ),
                 ),
               ],
@@ -430,12 +435,13 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildNavItem(
-    NavTab tab,
-    IconData outlinedIcon,
-    IconData filledIcon,
-    String label,
-  ) {
+  Widget _buildNavItem({
+    required NavTab tab,
+    required IconData outlinedIcon,
+    required IconData filledIcon,
+    required String label,
+    required Color activeColor,
+  }) {
     final isActive = _activeTab == tab &&
         tab != NavTab.symptom &&
         tab != NavTab.settings;
@@ -445,13 +451,13 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => _onNavTap(tab),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOutCubic,
         margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.primaryBlue.withValues(alpha: isDark ? 0.22 : 0.12)
+              ? activeColor.withValues(alpha: isDark ? 0.22 : 0.12)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
@@ -466,14 +472,14 @@ class _HomeScreenState extends State<HomeScreen>
                 isActive ? filledIcon : outlinedIcon,
                 key: ValueKey('${tab.name}_$isActive'),
                 size: 21,
-                color: isActive ? AppColors.primaryBlue : AppColors.textTertiary,
+                color: isActive ? activeColor : AppColors.iconInactive,
               ),
             ),
             const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: AppTextStyles.labelSmall.copyWith(
-                color: isActive ? AppColors.primaryBlue : AppColors.textTertiary,
+                color: isActive ? activeColor : AppColors.iconInactive,
                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
                 fontSize: 10,
               ),
