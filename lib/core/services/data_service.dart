@@ -73,13 +73,12 @@ class DataService {
       pharmacies = results[0];
       hospitals = results[1];
 
-      // Hastaneler boş döndüyse (API anahtarı hatası / veri olmaması) dummy hastanelere düş
+      // Hastaneler boş döndüyse (Google Places API kısıtlaması vb.) hazır hastane verilerini yükle
       if (hospitals.isEmpty) {
-        usedFallback = true;
         hospitals = DummyData.hospitals;
       }
 
-      // Eczaneler boş döndüyse dummy eczanelere düş
+      // Canlı eczane verisi çekilemediyse hazır eczane verilerine düş ve uyarı ver
       if (pharmacies.isEmpty) {
         usedFallback = true;
         pharmacies = DummyData.pharmacies;
