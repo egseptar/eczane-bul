@@ -1,5 +1,4 @@
 import '../../models/place_model.dart';
-import '../../data/dummy_data.dart';
 import '../constants/api_constants.dart';
 import '../services/location_service.dart';
 import '../services/places_service.dart';
@@ -55,8 +54,9 @@ class DataService {
         city = resolved.$1;
         district = resolved.$2;
       }
-    } catch (_) {
-      // Konum alınamadı — varsayılan konum ile devam et
+      print('📍 [DataService] Resolved location: lat=$userLat, lng=$userLng, city=$city, district=$district, locationObtained=$locationObtained');
+    } catch (e) {
+      print('⚠️ [DataService] Location fetch error: $e. Using default location ($userLat, $userLng).');
     }
 
     // 2. Gerçek API çağrıları (paralel)
@@ -64,6 +64,7 @@ class DataService {
     List<PlaceModel> pharmacies = [];
     List<PlaceModel> hospitals = [];
 
+    print('🚀 [DataService] Fetching pharmacies & hospitals via API...');
     try {
       final results = await Future.wait([
         _fetchPharmacies(city: city, district: district, lat: userLat, lng: userLng),
@@ -73,21 +74,15 @@ class DataService {
       pharmacies = results[0];
       hospitals = results[1];
 
-      // Hastaneler boş döndüyse (Google Places API kısıtlaması vb.) hazır hastane verilerini yükle
-      if (hospitals.isEmpty) {
-        hospitals = DummyData.hospitals;
-      }
+      print('🏥 [DataService] Hospitals loaded from API: ${hospitals.length} items');
+      print('💊 [DataService] Pharmacies loaded from API: ${pharmacies.length} items');
 
-      // Canlı eczane verisi çekilemediyse hazır eczane verilerine düş ve uyarı ver
-      if (pharmacies.isEmpty) {
+      if (hospitals.isEmpty && pharmacies.isEmpty) {
         usedFallback = true;
-        pharmacies = DummyData.pharmacies;
       }
-    } catch (_) {
-      // Timeout veya ağ hatası — fallback verileri yükle
+    } catch (e) {
+      print('💥 [DataService] API Error or Timeout: $e');
       usedFallback = true;
-      if (pharmacies.isEmpty) pharmacies = DummyData.pharmacies;
-      if (hospitals.isEmpty) hospitals = DummyData.hospitals;
     }
 
     // 3. Mesafeleri hesapla ve sırala
@@ -190,7 +185,7 @@ class DataService {
     return PlacesService.instance.getNearbyHospitals(
       latitude: lat,
       longitude: lng,
-      radius: ApiConstants.maxSearchRadius,
+      radius: ApiConstants.hospitalSearchRadius,
     );
   }
 

@@ -38,15 +38,44 @@ class PlacesService {
   Future<List<PlaceModel>> getNearbyHospitals({
     required double latitude,
     required double longitude,
-    int radius = ApiConstants.maxSearchRadius,
+    int radius = ApiConstants.hospitalSearchRadius,
   }) async {
-    return _nearbySearch(
+    // 1. Text Search ile 'hastane' araması (Google Haritalar'daki Memorial, Medipol, Devlet/Özel tüm hastaneleri bulur)
+    final textResults = await _textSearch(
+      latitude: latitude,
+      longitude: longitude,
+      radius: radius,
+      query: 'hastane',
+      placeType: PlaceType.hospital,
+    );
+
+    // 2. Nearby Search ile keyword='hastane' (type kısıtlaması olmadan)
+    final kwResults = await _nearbySearch(
+      latitude: latitude,
+      longitude: longitude,
+      radius: radius,
+      keyword: 'hastane',
+      placeType: PlaceType.hospital,
+    );
+
+    // 3. Nearby Search ile type='hospital' (Google kategori araması)
+    final typeResults = await _nearbySearch(
       latitude: latitude,
       longitude: longitude,
       radius: radius,
       type: 'hospital',
       placeType: PlaceType.hospital,
     );
+
+    // Tüm sonuçları birleştir ve ID/İsim bazında duplicate verileri temizle
+    final Map<String, PlaceModel> merged = {};
+    for (final p in [...textResults, ...kwResults, ...typeResults]) {
+      merged[p.id] = p;
+    }
+
+    final uniqueList = merged.values.toList();
+    print('🏥 [PlacesService] Total unique hospitals merged: ${uniqueList.length}');
+    return uniqueList;
   }
 
   /// Tüm yakın sağlık tesislerini (eczane + hastane) birleştirir.
@@ -97,44 +126,113 @@ class PlacesService {
   }
 
   // ─────────────────────────────────────────
-  //  Private — Nearby Search
+  //  Private — Text Search & Nearby Search
   // ─────────────────────────────────────────
+
+  Future<List<PlaceModel>> _textSearch({
+    required double latitude,
+    required double longitude,
+    required int radius,
+    required String query,
+    required PlaceType placeType,
+  }) async {
+    final params = <String, String>{
+      'location': '$latitude,$longitude',
+      'radius': '$radius',
+      'query': query,
+      'language': 'tr',
+      'key': ApiConstants.googleApiKey,
+    };
+
+    final uri = Uri.parse(ApiConstants.textSearchEndpoint)
+        .replace(queryParameters: params);
+
+    print('📡 [PlacesService] Text Search Request: query="$query", lat=$latitude, lng=$longitude, radius=${radius}m');
+
+    try {
+      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      print('📥 [PlacesService] Text Search HTTP Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final status = data['status'] as String?;
+        final errorMessage = data['error_message'] as String?;
+
+        print('📊 [PlacesService] Text Search API Status: "$status"${errorMessage != null ? " | Error: $errorMessage" : ""}');
+
+        if (status == 'OK') {
+          final results = data['results'] as List<dynamic>? ?? [];
+          print('✅ [PlacesService] Text Search found ${results.length} results for query="$query"');
+          for (var r in results.take(3)) {
+            print('   • ${r['name']} (${r['formatted_address'] ?? r['vicinity']})');
+          }
+          return results
+              .map((r) => _mapToPlaceModel(r as Map<String, dynamic>, placeType))
+              .toList();
+        } else if (status == 'ZERO_RESULTS') {
+          print('⚠️ [PlacesService] Text Search ZERO_RESULTS for query="$query"');
+        } else {
+          print('❌ [PlacesService] Text Search Google API Failed with status="$status". Message: $errorMessage');
+        }
+      }
+    } catch (e) {
+      print('💥 [PlacesService] Text Search Exception: $e');
+    }
+    return [];
+  }
 
   Future<List<PlaceModel>> _nearbySearch({
     required double latitude,
     required double longitude,
     required int radius,
-    required String type,
+    String? type,
     required PlaceType placeType,
     String? keyword,
   }) async {
     final params = <String, String>{
       'location': '$latitude,$longitude',
       'radius': '$radius',
-      'type': type,
       'language': 'tr',
       'key': ApiConstants.googleApiKey,
     };
+    if (type != null) params['type'] = type;
     if (keyword != null) params['keyword'] = keyword;
 
     final uri = Uri.parse(ApiConstants.nearbySearchEndpoint)
         .replace(queryParameters: params);
 
+    print('📡 [PlacesService] Nearby Search Request: type=$type, keyword=$keyword, lat=$latitude, lng=$longitude, radius=${radius}m');
+
     try {
       final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      print('📥 [PlacesService] HTTP Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
+        final status = data['status'] as String?;
+        final errorMessage = data['error_message'] as String?;
 
-        if (data['status'] == 'OK' || data['status'] == 'ZERO_RESULTS') {
+        print('📊 [PlacesService] Google API Status: "$status"${errorMessage != null ? " | Error: $errorMessage" : ""}');
+
+        if (status == 'OK') {
           final results = data['results'] as List<dynamic>? ?? [];
+          print('✅ [PlacesService] Found ${results.length} results for type=$type, keyword=$keyword');
+          for (var r in results.take(3)) {
+            print('   • ${r['name']} (${r['vicinity'] ?? r['formatted_address']})');
+          }
           return results
               .map((r) => _mapToPlaceModel(r as Map<String, dynamic>, placeType))
               .toList();
+        } else if (status == 'ZERO_RESULTS') {
+          print('⚠️ [PlacesService] ZERO_RESULTS returned for type=$type, keyword=$keyword in radius=${radius}m');
+        } else {
+          print('❌ [PlacesService] Google API Request Failed with status="$status". Message: $errorMessage');
         }
+      } else {
+        print('❌ [PlacesService] HTTP Error Response (${response.statusCode}): ${response.body}');
       }
     } catch (e) {
-      // Ağ hatası — boş liste döndür
+      print('💥 [PlacesService] Network Exception: $e');
     }
     return [];
   }

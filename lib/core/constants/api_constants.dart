@@ -23,6 +23,8 @@ class ApiConstants {
       'https://maps.googleapis.com/maps/api/place';
   static const String nearbySearchEndpoint =
       '$placesBaseUrl/nearbysearch/json';
+  static const String textSearchEndpoint =
+      '$placesBaseUrl/textsearch/json';
   static const String placeDetailsEndpoint = '$placesBaseUrl/details/json';
   static const String geocodingBaseUrl =
       'https://maps.googleapis.com/maps/api/geocode/json';
@@ -58,6 +60,9 @@ class ApiConstants {
 
   /// Maksimum arama yarıçapı (metre)
   static const int maxSearchRadius = 5000;
+
+  /// Hastane arama yarıçapı (metre - 10 km)
+  static const int hospitalSearchRadius = 10000;
 
   // ─────────────────────────────────────────
   //  API Sağlık Kontrolü
