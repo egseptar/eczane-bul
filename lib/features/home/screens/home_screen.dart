@@ -104,11 +104,11 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: AppColors.warningOrange,
         content: Row(
           children: [
-            const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.cloud_off_rounded, color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'İnternet yok — örnek veriler gösteriliyor.',
+                'Canlı veri servisine ulaşılamadı — demo verileri gösteriliyor.',
                 style: AppTextStyles.bodySmall
                     .copyWith(color: Colors.white, fontWeight: FontWeight.w600),
               ),

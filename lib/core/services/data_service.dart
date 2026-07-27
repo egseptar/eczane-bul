@@ -73,21 +73,22 @@ class DataService {
       pharmacies = results[0];
       hospitals = results[1];
 
-      // Google API anahtarı yoksa ve API boş döndüyse dummy hastaneleri yükle
-      if (hospitals.isEmpty && !ApiConstants.hasGoogleKey) {
+      // Hastaneler boş döndüyse (API anahtarı hatası / veri olmaması) dummy hastanelere düş
+      if (hospitals.isEmpty) {
+        usedFallback = true;
         hospitals = DummyData.hospitals;
       }
 
-      // Eğer eczaneler boş geldiyse dummy eczanelere düş
-      if (pharmacies.isEmpty && !ApiConstants.hasPharmacyApiKey && !ApiConstants.hasGoogleKey) {
+      // Eczaneler boş döndüyse dummy eczanelere düş
+      if (pharmacies.isEmpty) {
         usedFallback = true;
         pharmacies = DummyData.pharmacies;
       }
     } catch (_) {
-      // Timeout veya ağ hatası — yalnızca API anahtarı yoksa veya hata alındıysa fallback
+      // Timeout veya ağ hatası — fallback verileri yükle
       usedFallback = true;
       if (pharmacies.isEmpty) pharmacies = DummyData.pharmacies;
-      if (hospitals.isEmpty && !ApiConstants.hasGoogleKey) hospitals = DummyData.hospitals;
+      if (hospitals.isEmpty) hospitals = DummyData.hospitals;
     }
 
     // 3. Mesafeleri hesapla ve sırala
