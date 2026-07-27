@@ -120,21 +120,50 @@ class PlacesService {
     final uri = Uri.parse(ApiConstants.nearbySearchEndpoint)
         .replace(queryParameters: params);
 
+    // Terminal konsol günlüğü
+    // ignore: avoid_print
+    print('[PlacesService] NearbySearch İstek URL: $uri');
+
     try {
       final response = await _client.get(uri).timeout(const Duration(seconds: 10));
 
+      // ignore: avoid_print
+      print('[PlacesService] HTTP Yanıt Kodu: ${response.statusCode}');
+      // ignore: avoid_print
+      print('[PlacesService] HTTP Yanıt Gövdesi: ${response.body.length > 600 ? "${response.body.substring(0, 600)}..." : response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
+        final status = data['status'] as String? ?? 'UNKNOWN';
 
-        if (data['status'] == 'OK' || data['status'] == 'ZERO_RESULTS') {
+        if (status == 'OK' || status == 'ZERO_RESULTS') {
           final results = data['results'] as List<dynamic>? ?? [];
-          return results
-              .map((r) => _mapToPlaceModel(r as Map<String, dynamic>, placeType))
-              .toList();
+          final parsedPlaces = <PlaceModel>[];
+
+          for (var i = 0; i < results.length; i++) {
+            try {
+              final rawItem = results[i] as Map<String, dynamic>;
+              final place = _mapToPlaceModel(rawItem, placeType);
+              parsedPlaces.add(place);
+            } catch (e, stack) {
+              // ignore: avoid_print
+              print('[PlacesService] Hastane/Eczane #$i dönüştürülürken hata oluştu: $e. Öğeyi atlıyorum.');
+              // ignore: avoid_print
+              print('[PlacesService] Stacktrace: $stack');
+              continue;
+            }
+          }
+          return parsedPlaces;
+        } else {
+          // ignore: avoid_print
+          print('[PlacesService] API status yanıtı OK değil: $status');
         }
       }
-    } catch (e) {
-      // Ağ hatası — boş liste döndür
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('[PlacesService] Ağ veya JSON Çözümleme Hatası ($type): $e');
+      // ignore: avoid_print
+      print('[PlacesService] Stacktrace: $stack');
     }
     return [];
   }
