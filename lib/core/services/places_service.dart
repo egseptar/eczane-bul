@@ -243,8 +243,6 @@ class PlacesService {
       print('[PlacesService] Stacktrace: $stack');
     }
     return [];
-    }
-    return [];
   }
 
   // ─────────────────────────────────────────
