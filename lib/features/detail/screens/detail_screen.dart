@@ -45,29 +45,65 @@ class _DetailScreenState extends State<DetailScreen>
 
   PlaceModel get place => widget.place;
 
-  void _callPlace() {
+  Future<void> _callPlace() async {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Arıyor: ${place.phone}'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        action: SnackBarAction(
-          label: 'Tamam',
-          onPressed: () {},
-        ),
-      ),
-    );
+    final rawPhone = place.phone.trim();
+    if (rawPhone.isEmpty) return;
+
+    final cleanPhone = rawPhone.replaceAll(RegExp(r'[^\d+]'), '');
+    final uri = Uri.parse('tel:$cleanPhone');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Arama başlatılamadı.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Arama yapılırken bir hata oluştu.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
-  void _getDirections() {
+  Future<void> _getDirections() async {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Harita uygulaması açılıyor...'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    final mapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}';
+    final uri = Uri.parse(mapsUrl);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Yol tarifi bağlantısı açılamadı.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Yol tarifi açılırken bir hata oluştu.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _openAppointmentUrl() async {
@@ -313,6 +349,61 @@ class _DetailScreenState extends State<DetailScreen>
   }
 
   Widget _buildRatingSection() {
+    if (place.rating <= 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.star_outline_rounded,
+                color: AppColors.primaryBlue,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Değerlendirme Bulunmuyor',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    'Bu kurum için henüz resmi değerlendirme puanı girilmemiştir.',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -709,7 +800,7 @@ class _DetailScreenState extends State<DetailScreen>
           // Ara
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: _callPlace,
+              onPressed: place.phone.trim().isNotEmpty ? _callPlace : null,
               icon: const Icon(Icons.phone_rounded, size: 17),
               label: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -717,7 +808,9 @@ class _DetailScreenState extends State<DetailScreen>
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.green,
+                disabledBackgroundColor: AppColors.green.withValues(alpha: 0.35),
                 foregroundColor: Colors.white,
+                disabledForegroundColor: Colors.white70,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
                 shape: RoundedRectangleBorder(

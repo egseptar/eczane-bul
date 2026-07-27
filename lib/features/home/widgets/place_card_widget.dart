@@ -161,24 +161,43 @@ class PlaceCardWidget extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
               child: Row(
                 children: [
-                  // Yıldız puanı
-                  Icon(
-                    Icons.star_rounded,
-                    color: AppColors.starGold,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    place.rating.toStringAsFixed(1),
-                    style: AppTextStyles.titleSmall.copyWith(
-                      fontWeight: FontWeight.w700,
+                  // Yıldız puanı veya Değerlendirme Yok
+                  if (place.rating > 0) ...[
+                    Icon(
+                      Icons.star_rounded,
+                      color: AppColors.starGold,
+                      size: 16,
                     ),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    '(${_formatCount(place.reviewsCount)})',
-                    style: AppTextStyles.labelSmall,
-                  ),
+                    const SizedBox(width: 4),
+                    Text(
+                      place.rating.toStringAsFixed(1),
+                      style: AppTextStyles.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (place.reviewsCount > 0) ...[
+                      const SizedBox(width: 3),
+                      Text(
+                        '(${_formatCount(place.reviewsCount)})',
+                        style: AppTextStyles.labelSmall,
+                      ),
+                    ],
+                  ] else ...[
+                    Icon(
+                      Icons.star_outline_rounded,
+                      color: AppColors.textTertiary,
+                      size: 15,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Değerlendirme Yok',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textTertiary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(width: 14),
 

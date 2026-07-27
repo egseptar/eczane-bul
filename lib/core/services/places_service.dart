@@ -170,11 +170,8 @@ class PlacesService {
           ]
         : const <String>[];
 
-    final rawRating = (json['rating'] as num?)?.toDouble() ?? 0.0;
-    final rating = (rawRating == 0.0 && type == PlaceType.hospital) ? 4.2 : rawRating;
-
-    final rawReviews = (json['user_ratings_total'] as int?) ?? 0;
-    final reviewsCount = (rawReviews == 0 && type == PlaceType.hospital) ? 24 : rawReviews;
+    final rating = (json['rating'] as num?)?.toDouble() ?? 0.0;
+    final reviewsCount = (json['user_ratings_total'] as int?) ?? 0;
 
     return PlaceModel(
       id: json['place_id'] as String? ?? '',

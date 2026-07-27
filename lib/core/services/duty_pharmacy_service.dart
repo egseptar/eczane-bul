@@ -88,12 +88,13 @@ class DutyPharmacyService {
   PlaceModel _mapNosyToPlaceModel(Map<String, dynamic> json) {
     final lat = _parseDouble(json['latitude'] ?? json['lat']);
     final lng = _parseDouble(json['longitude'] ?? json['long'] ?? json['lng']);
+    final phoneStr = (json['phone'] ?? json['telefon'] ?? json['phone_number'] ?? json['tel'])?.toString().trim() ?? '';
 
     return PlaceModel(
       id: 'nosy_${json['id'] ?? json['eczaneId'] ?? _hashString(json['name']?.toString() ?? '')}',
       name: json['name']?.toString() ?? json['eczaneAdi']?.toString() ?? 'Eczane',
       type: PlaceType.pharmacy,
-      rating: _parseDouble(json['rating']) ?? 4.0,
+      rating: _parseDouble(json['rating']) ?? 0.0,
       reviewsCount: (json['ratingCount'] as int?) ?? 0,
       distanceKm: 0.0,
       address: [
@@ -101,7 +102,7 @@ class DutyPharmacyService {
         json['district'] ?? json['ilce'],
         json['city'] ?? json['il'],
       ].whereType<String>().where((s) => s.isNotEmpty).join(', '),
-      phone: json['phone']?.toString() ?? json['telefon']?.toString() ?? '',
+      phone: phoneStr,
       isOpen: true,
       isOnDuty: true,
       branches: const [],
@@ -186,15 +187,17 @@ class DutyPharmacyService {
       }
     }
 
+    final phoneStr = (json['phone'] ?? json['telefon'] ?? json['phone_number'] ?? json['tel'])?.toString().trim() ?? '';
+
     return PlaceModel(
       id: 'collect_${_hashString(json['name']?.toString() ?? '')}',
       name: json['name']?.toString() ?? 'Nöbetçi Eczane',
       type: PlaceType.pharmacy,
-      rating: 4.5,
-      reviewsCount: 18,
+      rating: 0.0,
+      reviewsCount: 0,
       distanceKm: 0.0,
       address: json['address']?.toString() ?? json['adres']?.toString() ?? '',
-      phone: json['phone']?.toString() ?? json['telefon']?.toString() ?? '',
+      phone: phoneStr,
       isOpen: true,
       isOnDuty: true,
       branches: const [],
