@@ -1,5 +1,6 @@
 import '../models/place_model.dart';
 import '../models/review_model.dart';
+import '../core/services/places_service.dart';
 
 class DummyData {
   DummyData._();
@@ -346,7 +347,8 @@ class DummyData {
       latitude: 41.0608,
       longitude: 28.9923,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://mhrs.gov.tr/',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Üniversite Göz ve Retina Hastanesi', PlaceType.hospital),
     ),
     PlaceModel(
       id: 'h2',
@@ -366,7 +368,8 @@ class DummyData {
       latitude: 41.0450,
       longitude: 29.0052,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://mhrs.gov.tr/',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Kalp ve Kardiyoloji Merkezi', PlaceType.hospital),
     ),
     PlaceModel(
       id: 'h3',
@@ -391,17 +394,18 @@ class DummyData {
       latitude: 40.9831,
       longitude: 29.0301,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://mhrs.gov.tr/',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Anne Çocuk Sağlığı Hastanesi', PlaceType.hospital),
     ),
     PlaceModel(
       id: 'h4',
-      name: 'Ortopedi ve Spor Yaralanmaları Merkezi',
+      name: 'Acıbadem Maslak Hastanesi',
       type: PlaceType.hospital,
-      rating: 4.6,
-      reviewsCount: 876,
+      rating: 4.9,
+      reviewsCount: 4120,
       distanceKm: 1.7,
-      address: 'Spor Cad. No:3, Ataşehir, İstanbul',
-      phone: '0216 575 77 77',
+      address: 'Büyükdere Cad. No:40, Maslak, İstanbul',
+      phone: '0212 304 40 40',
       isOpen: true,
       isOnDuty: false,
       branches: [
@@ -413,20 +417,21 @@ class DummyData {
       tags: ['Kırık Tespiti', 'Spor Yaralanması', 'Artroskopi', 'Protez'],
       emergencyTags: ['has_orthopedics_emergency', 'has_xray', 'has_general_emergency'],
       reviews: _reviewsOrtopedi,
-      latitude: 40.9908,
-      longitude: 29.1247,
+      latitude: 41.1120,
+      longitude: 29.0210,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Acıbadem Maslak Hastanesi', PlaceType.hospital),
     ),
     PlaceModel(
       id: 'h5',
-      name: 'Genel Sağlık Hastanesi',
+      name: 'Medical Park Göztepe Hastanesi',
       type: PlaceType.hospital,
-      rating: 4.4,
-      reviewsCount: 1532,
+      rating: 4.8,
+      reviewsCount: 3532,
       distanceKm: 3.2,
-      address: 'Cumhuriyet Cad. No:120, Şişli, İstanbul',
-      phone: '0212 219 22 22',
+      address: 'E5 Üzeri, 23 Nisan Sok. No:17, Göztepe, İstanbul',
+      phone: '0216 468 44 44',
       isOpen: true,
       isOnDuty: false,
       branches: [
@@ -440,20 +445,21 @@ class DummyData {
       tags: ['Poliklinik', 'Labaratuvar', 'Radyoloji', 'Acil Servis'],
       emergencyTags: ['has_general_surgery', 'has_internal_medicine', 'has_neurology_emergency', 'has_dental_emergency', 'has_general_emergency'],
       reviews: _reviewsKalp,
-      latitude: 41.0501,
-      longitude: 28.9873,
+      latitude: 40.9850,
+      longitude: 29.0620,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://mhrs.gov.tr/',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Medical Park Göztepe Hastanesi', PlaceType.hospital),
     ),
     PlaceModel(
       id: 'h6',
-      name: 'Göğüs ve Solunum Hastalıkları Hastanesi',
+      name: 'Memorial Şişli Hastanesi',
       type: PlaceType.hospital,
-      rating: 4.5,
-      reviewsCount: 689,
+      rating: 4.9,
+      reviewsCount: 2689,
       distanceKm: 2.5,
-      address: 'Hava Cad. No:22, Bakırköy, İstanbul',
-      phone: '0212 570 01 01',
+      address: 'Piyale Paşa Bulv. Şişli, İstanbul',
+      phone: '0212 314 66 66',
       isOpen: true,
       isOnDuty: false,
       branches: [
@@ -465,10 +471,11 @@ class DummyData {
       tags: ['Solunum Acili', 'Astım', 'KOAH', 'Uyku Apnesi'],
       emergencyTags: ['has_cardiology_emergency', 'has_internal_medicine', 'has_general_emergency'],
       reviews: _reviewsUnivers,
-      latitude: 40.9718,
-      longitude: 28.8703,
+      latitude: 41.0580,
+      longitude: 28.9770,
       workingHours: '24 Saat (Acil)',
-      appointmentUrl: 'https://mhrs.gov.tr/',
+      appointmentUrl: PlacesService.resolveAppointmentUrl(
+          'Memorial Şişli Hastanesi', PlaceType.hospital),
     ),
   ];
 

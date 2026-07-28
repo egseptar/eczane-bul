@@ -256,74 +256,92 @@ class PlacesService {
   }
 
   /// Hastane adına göre otomatik E-Randevu URL'si atar (MHRS ve Özel Markalar).
-  String? _resolveAppointmentUrl(String name, PlaceType type) {
+  static String? resolveAppointmentUrl(String name, PlaceType type) {
     if (type != PlaceType.hospital) return null;
 
-    final lowerName = name.toLowerCase();
+    final normalizedName = name
+        .toLowerCase()
+        .replaceAll('ı', 'i')
+        .replaceAll('i̇', 'i')
+        .replaceAll('ş', 's')
+        .replaceAll('ğ', 'g')
+        .replaceAll('ç', 'c')
+        .replaceAll('ö', 'o')
+        .replaceAll('ü', 'u')
+        .replaceAll(' ', '')
+        .replaceAll('-', '')
+        .replaceAll('.', '');
+
+    String assignedUrl;
 
     // 1. Acıbadem
-    if (lowerName.contains('acıbadem') || lowerName.contains('acibadem')) {
-      return 'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard';
+    if (normalizedName.contains('acibadem')) {
+      assignedUrl =
+          'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard';
     }
-
     // 2. Medical Park / VM Medical Park
-    if (lowerName.contains('medical park') ||
-        lowerName.contains('medicalpark') ||
-        lowerName.contains('vm medical')) {
-      return 'https://www.medicalpark.com.tr/randevu-al/bilgi-dogrulama';
+    else if (normalizedName.contains('medicalpark') ||
+        normalizedName.contains('vmmedical')) {
+      assignedUrl =
+          'https://www.medicalpark.com.tr/randevu-al/bilgi-dogrulama';
     }
-
     // 3. Memorial
-    if (lowerName.contains('memorial')) {
-      return 'https://www.memorial.com.tr/randevu-al';
+    else if (normalizedName.contains('memorial')) {
+      assignedUrl = 'https://www.memorial.com.tr/randevu-al';
     }
-
     // 4. Medicana
-    if (lowerName.contains('medicana')) {
-      return 'https://www.medicana.com.tr/online-randevu';
+    else if (normalizedName.contains('medicana')) {
+      assignedUrl = 'https://www.medicana.com.tr/online-randevu';
     }
-
     // 5. Medipol
-    if (lowerName.contains('medipol')) {
-      return 'https://online.medipol.com.tr/';
+    else if (normalizedName.contains('medipol')) {
+      assignedUrl = 'https://online.medipol.com.tr/';
     }
-
     // 6. Liv Hospital
-    if (lowerName.contains('liv hospital') || lowerName.contains('liv')) {
-      return 'https://www.livhospital.com/randevu-al/bilgi-dogrulama';
+    else if (normalizedName.contains('livhospital') ||
+        normalizedName.contains('liv')) {
+      assignedUrl =
+          'https://www.livhospital.com/randevu-al/bilgi-dogrulama';
     }
-
     // 7. Florence Nightingale
-    if (lowerName.contains('florence') || lowerName.contains('nightingale')) {
-      return 'https://www.florence.com.tr/online-randevu';
+    else if (normalizedName.contains('florence') ||
+        normalizedName.contains('nightingale')) {
+      assignedUrl = 'https://www.florence.com.tr/online-randevu';
     }
-
     // 8. Başkent Hastanesi
-    if (lowerName.contains('başkent') || lowerName.contains('baskent')) {
-      return 'https://ankara.baskenthastaneleri.com/tr/online-islemler/randevu';
+    else if (normalizedName.contains('baskent')) {
+      assignedUrl =
+          'https://ankara.baskenthastaneleri.com/tr/online-islemler/randevu';
     }
-
     // 9. Hisar Hospital
-    if (lowerName.contains('hisar')) {
-      return 'https://hisarhospital.com/randevu-al/?utm_term=hisar%20hastanesi%20randevu&utm_campaign=Branding+Search&utm_source=adwords&utm_medium=ppc&hsa_acc=7469825535&hsa_cam=8540911371&hsa_grp=125669721536&hsa_ad=627906579021&hsa_src=g&hsa_tgt=kwd-487119120378&hsa_kw=hisar%20hastanesi%20randevu&hsa_mt=b&hsa_net=adwords&hsa_ver=3&gad_source=1&gad_campaignid=8540911371&gclid=Cj0KCQjwg5zTBhCLARIsAP2AFU718R-cVWMJE8vbBZIi4m6SudaTPbmug4AN1WN8eXegPEQ_QabpvDgaAusnEALw_wcB#/appointment';
+    else if (normalizedName.contains('hisar')) {
+      assignedUrl =
+          'https://hisarhospital.com/randevu-al/?utm_term=hisar%20hastanesi%20randevu&utm_campaign=Branding+Search&utm_source=adwords&utm_medium=ppc&hsa_acc=7469825535&hsa_cam=8540911371&hsa_grp=125669721536&hsa_ad=627906579021&hsa_src=g&hsa_tgt=kwd-487119120378&hsa_kw=hisar%20hastanesi%20randevu&hsa_mt=b&hsa_net=adwords&hsa_ver=3&gad_source=1&gad_campaignid=8540911371&gclid=Cj0KCQjwg5zTBhCLARIsAP2AFU718R-cVWMJE8vbBZIi4m6SudaTPbmug4AN1WN8eXegPEQ_QabpvDgaAusnEALw_wcB#/appointment';
     }
-
     // 10. Anadolu Sağlık Merkezi
-    if (lowerName.contains('anadolu sağlık') || lowerName.contains('anadolu saglik')) {
-      return 'https://www.anadolusaglik.org/doktorlar';
+    else if (normalizedName.contains('anadolusaglik') ||
+        (normalizedName.contains('anadolu') &&
+            normalizedName.contains('saglik'))) {
+      assignedUrl = 'https://www.anadolusaglik.org/doktorlar';
     }
-
     // 11. Dünyagöz
-    if (lowerName.contains('dünyagöz') ||
-        lowerName.contains('dunya goz') ||
-        lowerName.contains('dünya göz') ||
-        lowerName.contains('dunyagoz')) {
-      return 'https://www.dunyagoz.com/tr/islemler/randevu?anaRandevu';
+    else if (normalizedName.contains('dunyagoz') ||
+        (normalizedName.contains('dunya') &&
+            normalizedName.contains('goz'))) {
+      assignedUrl =
+          'https://www.dunyagoz.com/tr/islemler/randevu?anaRandevu';
+    }
+    // 12. Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
+    else {
+      assignedUrl = 'https://mhrs.gov.tr/';
     }
 
-    // 12. Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
-    return 'https://mhrs.gov.tr/';
+    print('🏥 HASTANE EŞLEŞTİRME -> İsim: $name | Atanan URL: $assignedUrl');
+    return assignedUrl;
   }
+
+  String? _resolveAppointmentUrl(String name, PlaceType type) =>
+      resolveAppointmentUrl(name, type);
 
   List<String> _extractBranches(Map<String, dynamic> json) {
     final types = json['types'] as List<dynamic>? ?? [];

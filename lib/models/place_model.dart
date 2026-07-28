@@ -1,4 +1,5 @@
 import 'review_model.dart';
+import '../core/services/places_service.dart';
 
 enum PlaceType { pharmacy, hospital, clinic }
 
@@ -46,6 +47,65 @@ class PlaceModel {
     this.dutyEndTime,
     this.appointmentUrl,
   });
+
+  /// JSON verisinden PlaceModel üretir. Dış kaynak veya Google API'den gelen URL
+  /// bilgisi göz önünde bulundurulmaz; appointmentUrl %100 doğrudan
+  /// [PlacesService.resolveAppointmentUrl] metodu ile doldurulur.
+  factory PlaceModel.fromJson(Map<String, dynamic> json, PlaceType type) {
+    final geometryLocation =
+        json['geometry']?['location'] as Map<String, dynamic>?;
+    final lat = (geometryLocation?['lat'] as num?)?.toDouble() ??
+        (json['lat'] as num?)?.toDouble() ??
+        (json['latitude'] as num?)?.toDouble() ??
+        double.tryParse(json['lat']?.toString() ?? '') ??
+        0.0;
+    final lng = (geometryLocation?['lng'] as num?)?.toDouble() ??
+        (json['lng'] as num?)?.toDouble() ??
+        (json['longitude'] as num?)?.toDouble() ??
+        double.tryParse(json['lng']?.toString() ?? '') ??
+        0.0;
+
+    final openingHours = json['opening_hours'] as Map<String, dynamic>?;
+    final isOpen = openingHours?['open_now'] as bool? ?? true;
+
+    final name = (json['name'] as String?)?.trim() ?? 'Sağlık Kuruluşu';
+    final address =
+        (json['vicinity'] ?? json['formatted_address'] ?? json['address'])
+                ?.toString()
+                .trim() ??
+            '';
+    final placeId = (json['place_id'] ?? json['id'])?.toString() ?? '';
+
+    final rating = (json['rating'] as num?)?.toDouble() ?? 0.0;
+    final reviewsCount = (json['user_ratings_total'] as int?) ?? 0;
+
+    // Google API veya JSON'dan gelen veriler NE OLURSA OLSUN,
+    // randevu bağlantısı doğrudan kendi yazdığımız resolveAppointmentUrl metodundan alınır.
+    final appointmentUrl = PlacesService.resolveAppointmentUrl(name, type);
+
+    return PlaceModel(
+      id: placeId.isNotEmpty ? placeId : 'place_${name.hashCode}',
+      name: name,
+      type: type,
+      rating: rating,
+      reviewsCount: reviewsCount,
+      distanceKm: 0.0,
+      address: address,
+      phone: (json['formatted_phone_number'] ?? json['phone'])
+              ?.toString() ??
+          '',
+      isOpen: isOpen,
+      isOnDuty: type == PlaceType.pharmacy && isOpen,
+      branches: const [],
+      tags: const [],
+      emergencyTags: const [],
+      reviews: const [],
+      latitude: lat,
+      longitude: lng,
+      workingHours: isOpen ? 'Açık (24 Saat)' : 'Kapalı',
+      appointmentUrl: appointmentUrl,
+    );
+  }
 
   bool get isPharmacy => type == PlaceType.pharmacy;
   bool get isHospital => type == PlaceType.hospital;
