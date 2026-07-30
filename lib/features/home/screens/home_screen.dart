@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/data_service.dart';
+import '../../../core/services/places_service.dart';
 import '../../../models/place_model.dart';
 import '../widgets/emergency_bottom_sheet.dart';
 import '../widgets/map_widget.dart';
@@ -149,45 +150,11 @@ class _HomeScreenState extends State<HomeScreen>
         base = _allPharmacies;
         break;
       case NavTab.hospital:
-        if (_selectedSymptomBranch != null || _selectedSymptomTag != null) {
-          final branchLower = (_selectedSymptomBranch ?? '').toLowerCase();
-          final tagLower = (_selectedSymptomTag ?? '').toLowerCase();
-
-          List<String> keywords = [];
-
-          if (branchLower.contains('göz') || branchLower.contains('goz') || tagLower.contains('ophthalmology')) {
-            keywords = ['göz', 'goz', 'dünyagöz', 'dunyagoz'];
-          } else if (branchLower.contains('diş') || branchLower.contains('dis') || branchLower.contains('ağız') || branchLower.contains('agiz') || tagLower.contains('dental')) {
-            keywords = ['diş', 'dis', 'dental', 'dentist', 'dent', 'ağız', 'agiz'];
-          } else if (branchLower.contains('kalp') || branchLower.contains('kardiyoloji') || branchLower.contains('göğüs') || branchLower.contains('gogus') || tagLower.contains('cardiology')) {
-            keywords = ['kalp', 'kardiyoloji', 'göğüs', 'gogus'];
-          }
-
-          if (keywords.isNotEmpty) {
-            final matched = _allHospitals.where((h) {
-              final nameLower = h.name.toLowerCase();
-              final matchesName = keywords.any((k) => nameLower.contains(k));
-              final matchesBranch = h.branches.any((b) => keywords.any((k) => b.toLowerCase().contains(k)));
-              return matchesName || matchesBranch;
-            }).toList();
-
-            base = matched.isNotEmpty ? matched : _allHospitals;
-          } else {
-            final queryBranch = branchLower;
-            final matched = _allHospitals.where((h) {
-              final matchesTag = _selectedSymptomTag != null && h.emergencyTags.contains(_selectedSymptomTag);
-              final matchesBranch = queryBranch.isNotEmpty && (
-                h.branches.any((b) => b.toLowerCase().contains(queryBranch)) ||
-                h.name.toLowerCase().contains(queryBranch)
-              );
-              return matchesTag || matchesBranch;
-            }).toList();
-
-            base = matched.isNotEmpty ? matched : _allHospitals;
-          }
-        } else {
-          base = _allHospitals;
-        }
+        base = PlacesService.sortHospitalsByTriage(
+          hospitals: _allHospitals,
+          symptomBranch: _selectedSymptomBranch,
+          symptomTag: _selectedSymptomTag,
+        );
         break;
       default:
         base = [..._allPharmacies, ..._allHospitals]
@@ -195,13 +162,15 @@ class _HomeScreenState extends State<HomeScreen>
         break;
     }
     if (_searchQuery.isEmpty) return base;
-    final q = _searchQuery.toLowerCase();
-    return base
-        .where((p) =>
-            p.name.toLowerCase().contains(q) ||
-            p.address.toLowerCase().contains(q) ||
-            p.branches.any((b) => b.toLowerCase().contains(q)))
-        .toList();
+    final q = PlacesService.normalizeText(_searchQuery);
+    return base.where((p) {
+      final normName = PlacesService.normalizeText(p.name);
+      final normAddr = PlacesService.normalizeText(p.address);
+      final normBranches = p.branches.map(PlacesService.normalizeText);
+      return normName.contains(q) ||
+          normAddr.contains(q) ||
+          normBranches.any((b) => b.contains(q));
+    }).toList();
   }
 
   // ─── Navigasyon Aksiyonları ─────────────
@@ -1136,6 +1105,20 @@ class _SymptomBottomSheet extends StatelessWidget {
       'desc': 'Şiddetli diş ağrısı, apse, kırılma.',
       'branch': 'Ağız ve Diş Sağlığı',
       'tag': 'has_dental_emergency',
+    },
+    {
+      'icon': Icons.pregnant_woman_outlined,
+      'title': 'Kadın Doğum / Hamilelik',
+      'desc': 'Doğum sancısı, kanama, jinekolojik acil.',
+      'branch': 'Kadın Hastalıkları ve Doğum',
+      'tag': 'has_obgyn_emergency',
+    },
+    {
+      'icon': Icons.health_and_safety_outlined,
+      'title': 'Yanık / Cilt / Alerji',
+      'desc': 'Şiddetli yanık, alerjik reaksiyon, cilt rahatsızlığı.',
+      'branch': 'Dermatoloji (Cildiye)',
+      'tag': 'has_dermatology_emergency',
     },
   ];
 

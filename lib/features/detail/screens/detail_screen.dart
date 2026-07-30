@@ -113,10 +113,24 @@ class _DetailScreenState extends State<DetailScreen>
 
     final uri = Uri.parse(url);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
+      // 1. İlk olarak yerel uygulamayı (MHRS / Hastane App) açmaya çalışır
+      bool nativeAppLaunched = false;
+      try {
+        nativeAppLaunched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalNonBrowserApplication,
+        );
+      } catch (_) {
+        nativeAppLaunched = false;
+      }
+
+      // 2. Eğer yerel uygulama yüklü değilse veya açılamadıysa, tarayıcıda aç (Fallback)
+      if (!nativeAppLaunched) {
+        final webLaunched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!webLaunched && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Randevu adresi açılamadı.'),

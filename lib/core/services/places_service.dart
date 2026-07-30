@@ -67,6 +67,126 @@ class PlacesService {
   }
 
   // ─────────────────────────────────────────
+  //  Normalizasyon ve Triyaj Sıralama Algoritması
+  // ─────────────────────────────────────────
+
+  /// Türkçe karakter ve isim normalizasyonu
+  static String normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll('ı', 'i')
+        .replaceAll('i̇', 'i')
+        .replaceAll('ş', 's')
+        .replaceAll('ğ', 'g')
+        .replaceAll('ç', 'c')
+        .replaceAll('ö', 'o')
+        .replaceAll('ü', 'u')
+        .replaceAll(' ', '')
+        .replaceAll('-', '')
+        .replaceAll('.', '');
+  }
+
+  /// 8 Ana Şikayet Senaryosu ve Keyword Haritası
+  static const Map<String, List<String>> symptomKeywordMap = {
+    'trauma': ['ortopedi', 'travma', 'kemik', 'fizik', 'spor'],
+    'eye': ['goz', 'dunyagoz', 'optik', 'kudret', 'maya'],
+    'dental': ['dis', 'dental', 'dent', 'agiz', 'cene'],
+    'cardio': ['kalp', 'kardiyoloji', 'gogus', 'damar', 'siyamiersek'],
+    'pediatric': ['cocuk', 'pediatri', 'bebek'],
+    'obgyn': ['kadin', 'dogum', 'jinekoloji', 'zeynepkamil'],
+    'dermatology': ['yanik', 'cilt', 'deri', 'dermatoloji', 'plastik'],
+    'general': [],
+  };
+
+  /// Tam Teşekküllü Hastane (Genel/Fallback) Keywordleri
+  static const List<String> generalHospitalKeywords = [
+    'devlet',
+    'sehir',
+    'egitim',
+    'arastirma',
+    'universite',
+    'medicalpark',
+    'acibadem',
+    'memorial',
+    'medicana',
+  ];
+
+  /// Şikayete göre keyword listesi seçer
+  static List<String> getKeywordsForSymptom(String? branch, String? tag) {
+    final b = normalizeText(branch ?? '');
+    final t = normalizeText(tag ?? '');
+
+    if (b.contains('ortopedi') || b.contains('travma') || t.contains('orthopedics')) {
+      return symptomKeywordMap['trauma']!;
+    }
+    if (b.contains('goz') || t.contains('ophthalmology') || t.contains('eye')) {
+      return symptomKeywordMap['eye']!;
+    }
+    if (b.contains('dis') || b.contains('agiz') || t.contains('dental')) {
+      return symptomKeywordMap['dental']!;
+    }
+    if (b.contains('kalp') || b.contains('kardiyoloji') || b.contains('gogus') || t.contains('cardiology')) {
+      return symptomKeywordMap['cardio']!;
+    }
+    if (b.contains('cocuk') || b.contains('pediatri') || t.contains('pediatric')) {
+      return symptomKeywordMap['pediatric']!;
+    }
+    if (b.contains('kadin') || b.contains('dogum') || b.contains('jinekoloji') || t.contains('obgyn')) {
+      return symptomKeywordMap['obgyn']!;
+    }
+    if (b.contains('yanik') || b.contains('cilt') || b.contains('deri') || b.contains('dermatoloji') || t.contains('dermatology')) {
+      return symptomKeywordMap['dermatology']!;
+    }
+    return symptomKeywordMap['general']!;
+  }
+
+  /// Hastaneleri akıllı triyaj önceliğine göre sıralar:
+  /// Öncelik 1: Uzmanlık eşleşmesi (Özel dal)
+  /// Öncelik 2: Tam teşekküllü genel acil hastaneleri (Devlet, Şehir vb.)
+  /// Öncelik 3: Diğer poliklinik ve tıp merkezleri
+  /// Kendi içlerinde mesafeye göre sıralanır.
+  static List<PlaceModel> sortHospitalsByTriage({
+    required List<PlaceModel> hospitals,
+    String? symptomBranch,
+    String? symptomTag,
+  }) {
+    final keywords = getKeywordsForSymptom(symptomBranch, symptomTag);
+
+    int getPriority(PlaceModel h) {
+      final normName = normalizeText(h.name);
+      final normBranches = h.branches.map(normalizeText).toList();
+
+      // Öncelik 1: Uzmanlık Eşleşmesi
+      if (keywords.isNotEmpty) {
+        final matchesName = keywords.any((k) => normName.contains(k));
+        final matchesBranch = normBranches.any((b) => keywords.any((k) => b.contains(k)));
+        if (matchesName || matchesBranch) return 1;
+      }
+
+      // Öncelik 2: Tam Teşekküllü Hastaneler
+      final isGeneralHospital = generalHospitalKeywords.any((k) => normName.contains(k)) ||
+          normBranches.any((b) => generalHospitalKeywords.any((k) => b.contains(k))) ||
+          h.emergencyTags.contains('has_general_emergency');
+
+      if (isGeneralHospital) return 2;
+
+      // Öncelik 3: Diğerleri
+      return 3;
+    }
+
+    final sorted = List<PlaceModel>.from(hospitals);
+    sorted.sort((a, b) {
+      final pA = getPriority(a);
+      final pB = getPriority(b);
+      if (pA != pB) {
+        return pA.compareTo(pB);
+      }
+      return a.distanceKm.compareTo(b.distanceKm);
+    });
+    return sorted;
+  }
+
+  // ─────────────────────────────────────────
   //  Place Details — Yer Detayları
   // ─────────────────────────────────────────
 
