@@ -5,11 +5,13 @@ import '../../../core/theme/app_text_styles.dart';
 class SearchBarWidget extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final VoidCallback? onFilterTap;
+  final TextEditingController? controller;
 
   const SearchBarWidget({
     super.key,
     required this.onChanged,
     this.onFilterTap,
+    this.controller,
   });
 
   @override
@@ -17,12 +19,24 @@ class SearchBarWidget extends StatefulWidget {
 }
 
 class _SearchBarWidgetState extends State<SearchBarWidget> {
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _internalController;
+  TextEditingController get _effectiveController =>
+      widget.controller ?? _internalController;
   bool _hasFocus = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.controller == null) {
+      _internalController = TextEditingController();
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) {
+      _internalController.dispose();
+    }
     super.dispose();
   }
 
@@ -53,43 +67,48 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             child: Focus(
               onFocusChange: (hasFocus) =>
                   setState(() => _hasFocus = hasFocus),
-              child: TextField(
-                controller: _controller,
-                onChanged: widget.onChanged,
-                style: AppTextStyles.bodyMedium,
-                decoration: InputDecoration(
-                  hintText: 'Eczane veya hastane ara...',
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search_rounded,
-                    color: _hasFocus
-                        ? AppColors.primaryBlue
-                        : AppColors.textTertiary,
-                    size: 20,
-                  ),
-                  suffixIcon: _controller.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            size: 18,
-                            color: AppColors.textTertiary,
-                          ),
-                          onPressed: () {
-                            _controller.clear();
-                            widget.onChanged('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 13,
-                  ),
-                ),
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _effectiveController,
+                builder: (context, value, _) {
+                  return TextField(
+                    controller: _effectiveController,
+                    onChanged: widget.onChanged,
+                    style: AppTextStyles.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: 'Eczane veya hastane ara...',
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: _hasFocus
+                            ? AppColors.primaryBlue
+                            : AppColors.textTertiary,
+                        size: 20,
+                      ),
+                      suffixIcon: value.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: AppColors.textTertiary,
+                              ),
+                              onPressed: () {
+                                _effectiveController.clear();
+                                widget.onChanged('');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 13,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

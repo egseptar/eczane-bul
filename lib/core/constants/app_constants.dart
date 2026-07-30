@@ -2,7 +2,7 @@ class AppConstants {
   AppConstants._();
 
   // App Info
-  static const String appName = 'Eczane Bul';
+  static const String appName = 'SağlıkSync';
   static const String appTagline = 'Yakındaki Eczane & Hastaneler';
 
   // Emergency

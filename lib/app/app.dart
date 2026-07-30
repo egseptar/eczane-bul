@@ -13,7 +13,7 @@ class App extends StatelessWidget {
       valueListenable: AppTheme.themeNotifier,
       builder: (_, mode, __) {
         return MaterialApp(
-          title: 'Eczane Bul',
+          title: 'SağlıkSync',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

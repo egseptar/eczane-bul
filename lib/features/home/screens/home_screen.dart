@@ -45,6 +45,8 @@ class _HomeScreenState extends State<HomeScreen>
   List<PlaceModel> _allPharmacies = [];
   List<PlaceModel> _allHospitals = [];
 
+  final TextEditingController _searchController = TextEditingController();
+
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _searchController.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -147,23 +150,41 @@ class _HomeScreenState extends State<HomeScreen>
         break;
       case NavTab.hospital:
         if (_selectedSymptomBranch != null || _selectedSymptomTag != null) {
-          final queryBranch = _selectedSymptomBranch?.toLowerCase() ?? '';
-          final matched = _allHospitals.where((h) {
-            final matchesTag = _selectedSymptomTag != null && h.emergencyTags.contains(_selectedSymptomTag);
-            final matchesBranch = queryBranch.isNotEmpty && (
-              h.branches.any((b) => b.toLowerCase().contains(queryBranch)) ||
-              h.name.toLowerCase().contains(queryBranch) ||
-              (queryBranch.contains('kalp') && (
-                h.name.toLowerCase().contains('kardiyoloji') ||
-                h.name.toLowerCase().contains('göğüs') ||
-                h.name.toLowerCase().contains('gogus') ||
-                h.name.toLowerCase().contains('kalp')
-              ))
-            );
-            return matchesTag || matchesBranch;
-          }).toList();
+          final branchLower = (_selectedSymptomBranch ?? '').toLowerCase();
+          final tagLower = (_selectedSymptomTag ?? '').toLowerCase();
 
-          base = matched.isNotEmpty ? matched : _allHospitals;
+          List<String> keywords = [];
+
+          if (branchLower.contains('göz') || branchLower.contains('goz') || tagLower.contains('ophthalmology')) {
+            keywords = ['göz', 'goz', 'dünyagöz', 'dunyagoz'];
+          } else if (branchLower.contains('diş') || branchLower.contains('dis') || branchLower.contains('ağız') || branchLower.contains('agiz') || tagLower.contains('dental')) {
+            keywords = ['diş', 'dis', 'dental', 'dentist', 'dent', 'ağız', 'agiz'];
+          } else if (branchLower.contains('kalp') || branchLower.contains('kardiyoloji') || branchLower.contains('göğüs') || branchLower.contains('gogus') || tagLower.contains('cardiology')) {
+            keywords = ['kalp', 'kardiyoloji', 'göğüs', 'gogus'];
+          }
+
+          if (keywords.isNotEmpty) {
+            final matched = _allHospitals.where((h) {
+              final nameLower = h.name.toLowerCase();
+              final matchesName = keywords.any((k) => nameLower.contains(k));
+              final matchesBranch = h.branches.any((b) => keywords.any((k) => b.toLowerCase().contains(k)));
+              return matchesName || matchesBranch;
+            }).toList();
+
+            base = matched.isNotEmpty ? matched : _allHospitals;
+          } else {
+            final queryBranch = branchLower;
+            final matched = _allHospitals.where((h) {
+              final matchesTag = _selectedSymptomTag != null && h.emergencyTags.contains(_selectedSymptomTag);
+              final matchesBranch = queryBranch.isNotEmpty && (
+                h.branches.any((b) => b.toLowerCase().contains(queryBranch)) ||
+                h.name.toLowerCase().contains(queryBranch)
+              );
+              return matchesTag || matchesBranch;
+            }).toList();
+
+            base = matched.isNotEmpty ? matched : _allHospitals;
+          }
         } else {
           base = _allHospitals;
         }
@@ -196,6 +217,8 @@ class _HomeScreenState extends State<HomeScreen>
     }
     setState(() {
       _activeTab = tab;
+      _searchQuery = '';
+      _searchController.clear();
       if (tab == NavTab.pharmacy) {
         _selectedSymptomBranch = null;
         _selectedSymptomTag = null;
@@ -512,15 +535,11 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           Row(
             children: [
-              // Logo + başlık
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.local_hospital_rounded,
-                    color: Colors.white, size: 20),
+              // Logo + başlık (SağlıkSync markalama)
+              Image.asset(
+                'assets/images/logo.png',
+                height: 38,
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 10),
               Column(
@@ -531,6 +550,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: AppTextStyles.headlineMedium.copyWith(
                       fontWeight: FontWeight.w900,
                       color: AppColors.primaryBlue,
+                      letterSpacing: -0.3,
                     ),
                   ),
                   Row(
@@ -656,6 +676,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const SizedBox(height: 10),
           SearchBarWidget(
+            controller: _searchController,
             onChanged: (q) => setState(() => _searchQuery = q),
           ),
         ],
@@ -1576,7 +1597,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
           // ── Geliştirici & Versiyon (Guideline 1.5) ──
           Center(
             child: Text(
-              'Eczane Bul v1.0.0 (Build 100) • App Store Uyumlu Sürüm',
+              'SağlıkSync v1.0.0 (Build 100) • App Store Uyumlu Sürüm',
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.textTertiary,
                 fontSize: 10.5,

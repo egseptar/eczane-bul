@@ -57,7 +57,7 @@ class ApiConstants {
   static const int defaultSearchRadius = 2000;
 
   /// Maksimum arama yarıçapı (metre)
-  static const int maxSearchRadius = 5000;
+  static const int maxSearchRadius = 25000;
 
   // ─────────────────────────────────────────
   //  API Sağlık Kontrolü

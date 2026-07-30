@@ -81,21 +81,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: currentItem.accentColor.withValues(alpha: isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      Icons.local_hospital_rounded,
-                      color: currentItem.accentColor,
-                      size: 20,
-                    ),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 36,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Eczane Bul',
+                    'SağlıkSync',
                     style: AppTextStyles.headlineSmall.copyWith(
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.2,
