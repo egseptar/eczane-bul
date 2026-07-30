@@ -216,34 +216,10 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.transparent,
       builder: (_) => _SymptomBottomSheet(
         onSymptomSelected: (branch, tag) {
-          final hasMatch =
-              _allHospitals.any((h) => h.emergencyTags.contains(tag));
-
           setState(() {
             _activeTab = NavTab.hospital;
-            if (hasMatch) {
-              _selectedSymptomBranch = branch;
-              _selectedSymptomTag = tag;
-            } else {
-              _selectedSymptomBranch = 'Genel Acil Servis';
-              _selectedSymptomTag = 'has_general_emergency';
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text(
-                      'Yakında özel branş bulunamadı, en yakın genel acil servislere yönlendiriliyorsunuz.',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    backgroundColor: AppColors.warningOrange,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                  ),
-                );
-              });
-            }
+            _selectedSymptomBranch = branch;
+            _selectedSymptomTag = tag;
           });
         },
       ),

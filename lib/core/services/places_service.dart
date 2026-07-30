@@ -228,64 +228,89 @@ class PlacesService {
     required PlaceType placeType,
     String? keyword,
   }) async {
-    final params = <String, String>{
-      'location': '$latitude,$longitude',
-      'radius': '$radius',
-      'type': type,
-      'language': 'tr',
-      'key': ApiConstants.googleApiKey,
-    };
-    if (keyword != null) params['keyword'] = keyword;
+    final allParsedPlaces = <PlaceModel>[];
+    String? nextPageToken;
+    int pageCount = 0;
+    const maxPages = 3; // Maksimum 60 sonuç (3 sayfa * 20 sonuç)
 
-    final uri = Uri.parse(ApiConstants.nearbySearchEndpoint)
-        .replace(queryParameters: params);
+    do {
+      pageCount++;
+      final params = <String, String>{
+        'location': '$latitude,$longitude',
+        'radius': '$radius',
+        'type': type,
+        'language': 'tr',
+        'key': ApiConstants.googleApiKey,
+      };
 
-    // Terminal konsol günlüğü
-    // ignore: avoid_print
-    print('[PlacesService] NearbySearch İstek URL: $uri');
-
-    try {
-      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
-
-      // ignore: avoid_print
-      print('[PlacesService] HTTP Yanıt Kodu: ${response.statusCode}');
-      // ignore: avoid_print
-      print('[PlacesService] HTTP Yanıt Gövdesi: ${response.body.length > 600 ? "${response.body.substring(0, 600)}..." : response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
-        final status = data['status'] as String? ?? 'UNKNOWN';
-
-        if (status == 'OK' || status == 'ZERO_RESULTS') {
-          final results = data['results'] as List<dynamic>? ?? [];
-          final parsedPlaces = <PlaceModel>[];
-
-          for (var i = 0; i < results.length; i++) {
-            try {
-              final rawItem = results[i] as Map<String, dynamic>;
-              final place = _mapToPlaceModel(rawItem, placeType);
-              parsedPlaces.add(place);
-            } catch (e, stack) {
-              // ignore: avoid_print
-              print('[PlacesService] Hastane/Eczane #$i dönüştürülürken hata oluştu: $e. Öğeyi atlıyorum.');
-              // ignore: avoid_print
-              print('[PlacesService] Stacktrace: $stack');
-              continue;
-            }
-          }
-          return parsedPlaces;
-        } else {
-          // ignore: avoid_print
-          print('[PlacesService] API status yanıtı OK değil: $status');
-        }
+      if (nextPageToken != null && nextPageToken.isNotEmpty) {
+        params['pagetoken'] = nextPageToken;
+      } else if (keyword != null && keyword.isNotEmpty) {
+        params['keyword'] = keyword;
       }
-    } catch (e, stack) {
+
+      final uri = Uri.parse(ApiConstants.nearbySearchEndpoint)
+          .replace(queryParameters: params);
+
       // ignore: avoid_print
-      print('[PlacesService] Ağ veya JSON Çözümleme Hatası ($type): $e');
-      // ignore: avoid_print
-      print('[PlacesService] Stacktrace: $stack');
-    }
-    return [];
+      print('[PlacesService] NearbySearch İstek URL (Sayfa $pageCount): $uri');
+
+      try {
+        final response = await _client.get(uri).timeout(const Duration(seconds: 12));
+
+        // ignore: avoid_print
+        print('[PlacesService] HTTP Yanıt Kodu (Sayfa $pageCount): ${response.statusCode}');
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body) as Map<String, dynamic>;
+          final status = data['status'] as String? ?? 'UNKNOWN';
+
+          if (status == 'OK' || status == 'ZERO_RESULTS') {
+            final results = data['results'] as List<dynamic>? ?? [];
+
+            for (var i = 0; i < results.length; i++) {
+              try {
+                final rawItem = results[i] as Map<String, dynamic>;
+                final place = _mapToPlaceModel(rawItem, placeType);
+                if (!allParsedPlaces.any((p) => p.id == place.id)) {
+                  allParsedPlaces.add(place);
+                }
+              } catch (e, stack) {
+                // ignore: avoid_print
+                print('[PlacesService] Öğesi #$i dönüştürülürken hata: $e');
+                // ignore: avoid_print
+                print('[PlacesService] Stacktrace: $stack');
+              }
+            }
+
+            // Sayfalandırma token kontrolü
+            nextPageToken = data['next_page_token'] as String?;
+
+            if (nextPageToken != null && nextPageToken.isNotEmpty && pageCount < maxPages) {
+              // ignore: avoid_print
+              print('[PlacesService] next_page_token bulundu. 2 saniye bekleniyor...');
+              await Future.delayed(const Duration(seconds: 2));
+            } else {
+              nextPageToken = null;
+            }
+          } else {
+            // ignore: avoid_print
+            print('[PlacesService] API status yanıtı OK değil ($type Sayfa $pageCount): $status');
+            nextPageToken = null;
+          }
+        } else {
+          nextPageToken = null;
+        }
+      } catch (e, stack) {
+        // ignore: avoid_print
+        print('[PlacesService] Ağ veya JSON Hatası ($type Sayfa $pageCount): $e');
+        // ignore: avoid_print
+        print('[PlacesService] Stacktrace: $stack');
+        nextPageToken = null;
+      }
+    } while (nextPageToken != null && nextPageToken.isNotEmpty && pageCount < maxPages);
+
+    return allParsedPlaces;
   }
 
   // ─────────────────────────────────────────
