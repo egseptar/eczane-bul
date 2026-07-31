@@ -419,64 +419,122 @@ class PlacesService {
 
     String assignedUrl;
 
-    // 1. Acıbadem
+    // 1. BİRİNCİ ÖNCELİK - Mevcut Doğrudan Randevu Linkleri (DEĞİŞTİRİLMEZ)
     if (normalizedName.contains('acibadem')) {
       assignedUrl =
           'https://www.acibadem.com.tr/acibademonline/#/login?returnUrl=%2Fdashboard';
-    }
-    // 2. Medical Park / VM Medical Park
-    else if (normalizedName.contains('medicalpark') ||
+    } else if (normalizedName.contains('medicalpark') ||
         normalizedName.contains('vmmedical')) {
       assignedUrl =
           'https://www.medicalpark.com.tr/randevu-al/bilgi-dogrulama';
-    }
-    // 3. Memorial
-    else if (normalizedName.contains('memorial')) {
+    } else if (normalizedName.contains('memorial')) {
       assignedUrl = 'https://www.memorial.com.tr/randevu-al';
-    }
-    // 4. Medicana
-    else if (normalizedName.contains('medicana')) {
+    } else if (normalizedName.contains('medicana')) {
       assignedUrl = 'https://www.medicana.com.tr/online-randevu';
-    }
-    // 5. Medipol
-    else if (normalizedName.contains('medipol')) {
+    } else if (normalizedName.contains('medipol')) {
       assignedUrl = 'https://online.medipol.com.tr/';
-    }
-    // 6. Liv Hospital
-    else if (normalizedName.contains('livhospital') ||
+    } else if (normalizedName.contains('livhospital') ||
         normalizedName.contains('liv')) {
       assignedUrl =
           'https://www.livhospital.com/randevu-al/bilgi-dogrulama';
-    }
-    // 7. Florence Nightingale
-    else if (normalizedName.contains('florence') ||
+    } else if (normalizedName.contains('florence') ||
+        normalizedName.contains('florencenightingale') ||
         normalizedName.contains('nightingale')) {
       assignedUrl = 'https://www.florence.com.tr/online-randevu';
-    }
-    // 8. Başkent Hastanesi
-    else if (normalizedName.contains('baskent')) {
+    } else if (normalizedName.contains('baskent')) {
       assignedUrl =
           'https://ankara.baskenthastaneleri.com/tr/online-islemler/randevu';
-    }
-    // 9. Hisar Hospital
-    else if (normalizedName.contains('hisar')) {
+    } else if (normalizedName.contains('hisar')) {
       assignedUrl =
           'https://hisarhospital.com/randevu-al/?utm_term=hisar%20hastanesi%20randevu&utm_campaign=Branding+Search&utm_source=adwords&utm_medium=ppc&hsa_acc=7469825535&hsa_cam=8540911371&hsa_grp=125669721536&hsa_ad=627906579021&hsa_src=g&hsa_tgt=kwd-487119120378&hsa_kw=hisar%20hastanesi%20randevu&hsa_mt=b&hsa_net=adwords&hsa_ver=3&gad_source=1&gad_campaignid=8540911371&gclid=Cj0KCQjwg5zTBhCLARIsAP2AFU718R-cVWMJE8vbBZIi4m6SudaTPbmug4AN1WN8eXegPEQ_QabpvDgaAusnEALw_wcB#/appointment';
-    }
-    // 10. Anadolu Sağlık Merkezi
-    else if (normalizedName.contains('anadolusaglik') ||
+    } else if (normalizedName.contains('anadolusaglik') ||
         (normalizedName.contains('anadolu') &&
             normalizedName.contains('saglik'))) {
       assignedUrl = 'https://www.anadolusaglik.org/doktorlar';
-    }
-    // 11. Dünyagöz
-    else if (normalizedName.contains('dunyagoz') ||
+    } else if (normalizedName.contains('dunyagoz') ||
         (normalizedName.contains('dunya') &&
             normalizedName.contains('goz'))) {
       assignedUrl =
           'https://www.dunyagoz.com/tr/islemler/randevu?anaRandevu';
     }
-    // 12. Devlet, Şehir, Eğitim, Üniversite ve tüm diğer kamu/genel/özel hastaneler için MHRS
+    // 2. İKİNCİ ÖNCELİK - Yeni Eklenen Hastaneler ve Klinikler (Anasayfa Yönlendirmesi)
+    else if (normalizedName.contains('lokmanhekim')) {
+      assignedUrl = 'https://www.lokmanhekim.com.tr/';
+    } else if (normalizedName.contains('bayindir')) {
+      assignedUrl = 'https://www.bayindirhastanesi.com.tr/';
+    } else if (normalizedName.contains('medstar')) {
+      assignedUrl = 'https://www.medstar.com.tr/';
+    } else if (normalizedName.contains('koru')) {
+      assignedUrl = 'https://www.koruhastanesi.com/';
+    } else if (normalizedName.contains('kolan')) {
+      assignedUrl = 'https://www.kolanhastanesi.com.tr/';
+    } else if (normalizedName.contains('erdem')) {
+      assignedUrl = 'https://www.erdemhastahanesi.com.tr/';
+    } else if (normalizedName.contains('doruk')) {
+      assignedUrl = 'https://www.dorukhastanesi.com/';
+    } else if (normalizedName.contains('tinaztepe')) {
+      assignedUrl = 'https://tinaztepe.com/';
+    } else if (normalizedName.contains('ekol')) {
+      assignedUrl = 'https://www.ekolhastanesi.com/';
+    } else if (normalizedName.contains('losante')) {
+      assignedUrl = 'https://www.losante.com.tr/';
+    } else if (normalizedName.contains('sanikonukoglu') ||
+        normalizedName.contains('sanko')) {
+      assignedUrl = 'https://www.sankotip.com/';
+    } else if (normalizedName.contains('gurlife')) {
+      assignedUrl = 'https://www.gurlife.com.tr/';
+    } else if (normalizedName.contains('kocaelihastanesi')) {
+      assignedUrl = 'https://www.kocaelihastanesi.com.tr/';
+    } else if (normalizedName.contains('buyuksehir')) {
+      assignedUrl = 'https://www.buyuksehirhastanesi.com/';
+    } else if (normalizedName.contains('buyukanadolu')) {
+      assignedUrl = 'https://www.buyukanadolu.com.tr/';
+    } else if (normalizedName.contains('imperial')) {
+      assignedUrl = 'https://www.imperialhastanesi.com/';
+    } else if (normalizedName.contains('adatip')) {
+      assignedUrl = 'https://www.adatiphastanesi.com/';
+    } else if (normalizedName.contains('jimer')) {
+      assignedUrl = 'https://www.jimer.com.tr/';
+    } else if (normalizedName.contains('medar')) {
+      assignedUrl = 'https://www.medarhastanesi.com.tr/';
+    } else if (normalizedName.contains('venividi')) {
+      assignedUrl = 'https://www.venividigoz.com/';
+    } else if (normalizedName.contains('batigoz')) {
+      assignedUrl = 'https://www.batigoz.com/';
+    } else if (normalizedName.contains('kudretgoz')) {
+      assignedUrl = 'https://www.kudretgoz.com.tr/';
+    } else if (normalizedName.contains('gozvakfi')) {
+      assignedUrl = 'https://www.gozvakfi.com/';
+    } else if (normalizedName.contains('kaskaloglu')) {
+      assignedUrl = 'https://www.kaskaloglu.com/';
+    } else if (normalizedName.contains('retinagoz')) {
+      assignedUrl = 'https://www.retinagoz.com/';
+    } else if (normalizedName.contains('vizyongoz')) {
+      assignedUrl = 'https://www.vizyongoz.com/';
+    } else if (normalizedName.contains('antakyagoz')) {
+      assignedUrl = 'https://www.antakyagoz.com.tr/';
+    } else if (normalizedName.contains('hospitadent')) {
+      assignedUrl = 'https://www.hospitadent.com/';
+    } else if (normalizedName.contains('dentgroup')) {
+      assignedUrl = 'https://www.dentgroup.com.tr/';
+    } else if (normalizedName.contains('yeditepedis') ||
+        normalizedName.contains('yeditepeuniversitesidis')) {
+      assignedUrl = 'https://yeditepedishastanesi.com/';
+    } else if (normalizedName.contains('okandis') ||
+        normalizedName.contains('okanuniversitesidis')) {
+      assignedUrl = 'https://okandishastanesi.com/';
+    } else if (normalizedName.contains('dentakademi')) {
+      assignedUrl = 'https://www.dentakademi.com.tr/';
+    } else if (normalizedName.contains('dentaydin')) {
+      assignedUrl = 'https://dentaydin.com/';
+    } else if (normalizedName.contains('esnan')) {
+      assignedUrl = 'https://www.esnan.com/';
+    } else if (normalizedName.contains('oldcitydent')) {
+      assignedUrl = 'https://www.oldcitydent.com/';
+    } else if (normalizedName.contains('dentspan')) {
+      assignedUrl = 'https://www.dentspan.com.tr/';
+    }
+    // 3. ÜÇÜNCÜ ÖNCELİK - Fallback (MHRS)
     else {
       assignedUrl = 'https://mhrs.gov.tr/';
     }
