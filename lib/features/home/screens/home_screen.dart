@@ -16,6 +16,7 @@ import '../widgets/search_bar_widget.dart';
 import '../../detail/screens/detail_screen.dart';
 import '../../map/screens/full_screen_map_screen.dart';
 import '../../common/widgets/ad_banner_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ─────────────────────────────────────────
 //  Alt Navigasyon Sekme Türleri
@@ -1318,6 +1319,19 @@ class _SettingsBottomSheet extends StatefulWidget {
 }
 
 class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
+  Future<void> _launchLegalUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Hukuki URL açılırken hata: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1333,238 +1347,357 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
         20,
         MediaQuery.of(context).padding.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tutma çubuğu
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Tutma çubuğu
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Başlık
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.settings_outlined,
-                    color: AppColors.primaryBlue, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Menü & Ayarlar',
-                    style: AppTextStyles.headlineSmall
-                        .copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    'Uygulama tercihleri ve yasal bilgilendirme',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
+            // Başlık
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.background,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border),
+                    color: AppColors.primaryBlue
+                        .withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.close_rounded,
-                      size: 18, color: AppColors.textSecondary),
+                  child: const Icon(Icons.settings_outlined,
+                      color: AppColors.primaryBlue, size: 22),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-
-          // ── Karanlık Mod Anahtarı ──
-          ValueListenableBuilder<ThemeMode>(
-            valueListenable: AppTheme.themeNotifier,
-            builder: (context, mode, child) {
-              final isDarkModeActive = mode == ThemeMode.dark;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: isDark ? 0.1 : 0.05),
-                  ),
-                ),
-                child: Row(
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      isDarkModeActive
-                          ? Icons.dark_mode_rounded
-                          : Icons.light_mode_rounded,
-                      color: AppColors.primaryBlue,
-                      size: 22,
+                    Text(
+                      'Menü & Ayarlar',
+                      style: AppTextStyles.headlineSmall
+                          .copyWith(fontWeight: FontWeight.w800),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Karanlık Mod (Dark Theme)',
-                            style: AppTextStyles.titleMedium.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            isDarkModeActive
-                                ? 'Koyu lacivert gece görünümü aktif'
-                                : 'Açık görünüm aktif',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch.adaptive(
-                      value: isDarkModeActive,
-                      activeColor: AppColors.primaryBlue,
-                      onChanged: (val) {
-                        HapticFeedback.lightImpact();
-                        AppTheme.themeNotifier.value =
-                            val ? ThemeMode.dark : ThemeMode.light;
-                        setState(() {});
-                      },
+                    Text(
+                      'Uygulama tercihleri ve yasal bilgilendirme',
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.textSecondary),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // ── App Store Guideline 1.4.1 Tıbbi Sorumluluk Reddi ──
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: (isDark ? Colors.white : Colors.black)
-                    .withValues(alpha: isDark ? 0.1 : 0.05),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.verified_user_outlined,
-                    color: AppColors.green, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tıbbi Sorumluluk Reddi (Guideline 1.4.1)',
-                        style: AppTextStyles.titleMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Bu uygulama kamuya açık nöbetçi eczane ve acil servis verilerini haritada gösterir. Tıbbi teşhis koymaz veya tedavi sunmaz. Tıbbi kararlarınız için daima doktorunuza danışın.',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.background,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Icon(Icons.close_rounded,
+                        size: 18, color: AppColors.textSecondary),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 20),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
 
-          // ── App Store Guideline 5.1 Gizlilik ve KVKK ──
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: (isDark ? Colors.white : Colors.black)
-                    .withValues(alpha: isDark ? 0.1 : 0.05),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.privacy_tip_outlined,
-                    color: AppColors.primaryBlue, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // ── Karanlık Mod Anahtarı ──
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: AppTheme.themeNotifier,
+              builder: (context, mode, child) {
+                final isDarkModeActive = mode == ThemeMode.dark;
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.background,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: isDark ? 0.1 : 0.05),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        'Gizlilik & Konum Güvenliği (Guideline 5.1)',
-                        style: AppTextStyles.titleMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                      Icon(
+                        isDarkModeActive
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        color: AppColors.primaryBlue,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Karanlık Mod (Dark Theme)',
+                              style: AppTextStyles.titleMedium.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              isDarkModeActive
+                                  ? 'Koyu lacivert gece görünümü aktif'
+                                  : 'Açık görünüm aktif',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Konum verileriniz yalnızca yakın çevrenizdeki nöbetçi eczaneleri mesafeye göre sıralamak için anlık olarak kullanılır ve cihazınızdan dışarı aktarılmaz.',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                          height: 1.35,
-                        ),
+                      Switch.adaptive(
+                        value: isDarkModeActive,
+                        activeColor: AppColors.primaryBlue,
+                        onChanged: (val) {
+                          HapticFeedback.lightImpact();
+                          AppTheme.themeNotifier.value =
+                              val ? ThemeMode.dark : ThemeMode.light;
+                          setState(() {});
+                        },
                       ),
                     ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-          // ── Geliştirici & Versiyon (Guideline 1.5) ──
-          Center(
-            child: Text(
-              'SağlıkSync v1.0.0 (Build 100) • App Store Uyumlu Sürüm',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textTertiary,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w500,
+            // ── Hukuki Metinler & Yasal Bağlantılar (Apple Guideline) ──
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: isDark ? 0.1 : 0.05),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // 1. Gizlilik Politikası
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 2),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue
+                            .withValues(alpha: isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.privacy_tip_outlined,
+                        color: AppColors.primaryBlue,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Gizlilik Politikası',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Kişisel veri ve konum politikasını inceleyin',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.open_in_new_rounded,
+                      size: 18,
+                      color: AppColors.primaryBlue,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _launchLegalUrl(
+                          'https://sites.google.com/view/sagliksync-app/home');
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    indent: 56,
+                    endIndent: 16,
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: isDark ? 0.1 : 0.05),
+                  ),
+                  // 2. Kullanım Koşulları
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 2),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue
+                            .withValues(alpha: isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.description_outlined,
+                        color: AppColors.primaryBlue,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Kullanım Koşulları',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Uygulama kullanım şartları ve kurallar',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.open_in_new_rounded,
+                      size: 18,
+                      color: AppColors.primaryBlue,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _launchLegalUrl('https://senin-siten.com/terms');
+                    },
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+
+            // ── App Store Guideline 1.4.1 Tıbbi Sorumluluk Reddi ──
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: isDark ? 0.1 : 0.05),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.verified_user_outlined,
+                      color: AppColors.green, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tıbbi Sorumluluk Reddi (Guideline 1.4.1)',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Bu uygulama kamuya açık nöbetçi eczane ve acil servis verilerini haritada gösterir. Tıbbi teşhis koymaz veya tedavi sunmaz. Tıbbi kararlarınız için daima doktorunuza danışın.',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── App Store Guideline 5.1 Gizlilik ve KVKK ──
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: isDark ? 0.1 : 0.05),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.privacy_tip_outlined,
+                      color: AppColors.primaryBlue, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Gizlilik & Konum Güvenliği (Guideline 5.1)',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Konum verileriniz yalnızca yakın çevrenizdeki nöbetçi eczaneleri mesafeye göre sıralamak için anlık olarak kullanılır ve cihazınızdan dışarı aktarılmaz.',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Geliştirici & Versiyon (Guideline 1.5) ──
+            Center(
+              child: Text(
+                'SağlıkSync v1.0.0 (Build 100) • App Store Uyumlu Sürüm',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textTertiary,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
